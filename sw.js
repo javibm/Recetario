@@ -5,7 +5,7 @@ const ASSETS = [
     './styles.css',
     './app.js',
     './manifest.json',
-    './recetario_icon.png'
+    './recetario_icon.svg'
 ];
 
 self.addEventListener('install', (e) => {
