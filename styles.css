@@ -56,6 +56,9 @@ body {
     /* Prevent body scroll, handle in main */
     display: flex;
     flex-direction: column;
+    /* Subtle Pattern */
+    background-image: radial-gradient(var(--md-sys-color-outline-variant) 1px, transparent 1px);
+    background-size: 20px 20px;
 }
 
 .app-container {
@@ -63,7 +66,8 @@ body {
     flex-direction: column;
     height: 100%;
     width: 100%;
-    background-color: var(--md-sys-color-surface);
+    background-color: rgba(251, 253, 249, 0.95);
+    /* Semi-transparent surface */
     position: relative;
 }
 
@@ -131,6 +135,18 @@ main {
     }
 }
 
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 /* Bottom Navigation */
 .bottom-navigation {
     height: 80px;
@@ -141,10 +157,23 @@ main {
     align-items: center;
     padding-bottom: 16px;
     /* Safe area for mobile */
-    position: absolute;
+    position: fixed;
+    /* Fixed to viewport */
     bottom: 0;
+    left: 0;
     width: 100%;
     z-index: 20;
+}
+
+/* Constrain Nav width on desktop to match container if desired, or keep full width */
+@media (min-width: 600px) {
+    .bottom-navigation {
+        max-width: 600px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 1px solid var(--md-sys-color-outline-variant);
+        border-right: 1px solid var(--md-sys-color-outline-variant);
+    }
 }
 
 .nav-item {
@@ -191,7 +220,7 @@ main {
 /* FAB */
 .fab {
     position: fixed;
-    /* Fixed relative to viewport/container */
+    /* Fixed relative to viewport */
     bottom: 100px;
     /* Above nav bar */
     right: 24px;
@@ -237,7 +266,7 @@ main {
     text-align: center;
 }
 
-.empty-state .material-icon {
+.empty-state .material-icons {
     font-size: 48px;
     margin-bottom: 16px;
     opacity: 0.5;
@@ -277,6 +306,91 @@ dialog header h2 {
     cursor: pointer;
     padding: 4px;
     border-radius: 50%;
+}
+
+/* Hero Dialog Styles */
+.hero-section {
+    height: 200px;
+    width: 100%;
+    position: relative;
+    background-color: var(--md-sys-color-surface-variant);
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: flex-end;
+}
+
+.hero-overlay {
+    width: 100%;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+    padding: 24px;
+    color: white;
+}
+
+.hero-overlay h2 {
+    font: var(--md-sys-typescale-headline-large);
+    font-size: 28px;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.close-btn-floating {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+}
+
+.close-btn-floating svg {
+    fill: currentColor;
+}
+
+/* Search Bar */
+.search-bar {
+    display: flex;
+    align-items: center;
+    background-color: var(--md-sys-color-surface-variant);
+    border-radius: 24px;
+    padding: 8px 16px;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.search-bar input {
+    border: none;
+    background: none;
+    padding: 8px 0;
+    flex: 1;
+    outline: none;
+}
+
+.search-bar .material-icons {
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Ingredient List Detail */
+#detail-ingredients li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#detail-ingredients li::before {
+    content: "•";
+    color: var(--md-sys-color-primary);
+    font-size: 20px;
 }
 
 .form-content {
@@ -349,7 +463,7 @@ dialog footer {
     background-color: var(--md-sys-color-surface);
     border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: var(--md-sys-shape-corner-large);
-    padding: 20px;
+    padding: 16px;
     margin-bottom: 16px;
     display: flex;
     justify-content: space-between;
@@ -357,12 +471,32 @@ dialog footer {
     cursor: pointer;
     transition: all 0.2s;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    animation: slideIn 0.3s ease-out;
 }
 
 .recipe-card:hover {
     background-color: var(--md-sys-color-surface-variant);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.recipe-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.recipe-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 18px;
+    flex-shrink: 0;
 }
 
 .recipe-card h3 {
@@ -402,6 +536,11 @@ dialog footer {
     justify-content: center;
     cursor: pointer;
     color: var(--md-sys-color-on-surface);
+    transition: background-color 0.2s;
+}
+
+.week-nav-btn:hover {
+    background-color: var(--md-sys-color-surface-variant);
 }
 
 .week-grid {
@@ -415,6 +554,7 @@ dialog footer {
     border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: var(--md-sys-shape-corner-large);
     padding: 16px;
+    animation: slideIn 0.3s ease-out;
 }
 
 .day-card.today {
@@ -508,13 +648,16 @@ dialog footer {
 
 /* Select Recipe List */
 .select-recipe-item {
-    padding: 16px;
+    padding: 12px;
     background-color: var(--md-sys-color-surface);
     border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 12px;
     cursor: pointer;
     font: var(--md-sys-typescale-body-large);
-    margin-bottom: 8px;
+    animation: slideIn 0.2s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .select-recipe-item:hover {
@@ -538,6 +681,7 @@ dialog footer {
     border-radius: 12px;
     gap: 16px;
     transition: background-color 0.2s;
+    animation: slideIn 0.3s ease-out;
 }
 
 .shopping-item:hover {

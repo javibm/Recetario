@@ -78,6 +78,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return days;
     }
 
+    function getInitials(name) {
+        return name.substring(0, 2).toUpperCase();
+    }
+
+    function getRandomColor(name) {
+        const colors = ['#FFCDD2', '#F8BBD0', '#E1BEE7', '#D1C4E9', '#C5CAE9', '#BBDEFB', '#B3E5FC', '#B2EBF2', '#B2DFDB', '#C8E6C9', '#DCEDC8', '#F0F4C3', '#FFF9C4', '#FFECB3', '#FFE0B2', '#FFCCBC'];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return colors[Math.abs(hash) % colors.length];
+    }
+
     // --- Recipe Management ---
 
     // Load Data
@@ -112,9 +125,22 @@ document.addEventListener('DOMContentLoaded', () => {
         state.recipes.forEach(recipe => {
             const card = document.createElement('div');
             card.className = 'recipe-card';
+
+            // Image or Initials
+            let imageHtml = '';
+            if (recipe.image) {
+                imageHtml = `<img src="${recipe.image}" alt="${recipe.title}" class="recipe-avatar">`;
+            } else {
+                const color = getRandomColor(recipe.title);
+                imageHtml = `<div class="recipe-avatar" style="background-color: ${color}; color: #333;">${getInitials(recipe.title)}</div>`;
+            }
+
             card.innerHTML = `
-                <h3>${recipe.title}</h3>
-                <span class="material-icon">chevron_right</span>
+                <div class="recipe-info">
+                    ${imageHtml}
+                    <h3>${recipe.title}</h3>
+                </div>
+                <span class="material-icons">chevron_right</span>
             `;
             card.addEventListener('click', () => openRecipeDetails(recipe));
             recipeListContainer.appendChild(card);
@@ -125,12 +151,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const recipeDetailsDialog = document.getElementById('recipe-details-dialog');
     const closeDetailDialogBtn = document.getElementById('close-detail-dialog');
     const deleteRecipeBtn = document.getElementById('delete-recipe-btn');
-    const editRecipeBtn = document.getElementById('edit-recipe-btn'); // New Edit Button
+    const editRecipeBtn = document.getElementById('edit-recipe-btn');
     let currentRecipeId = null;
 
     function openRecipeDetails(recipe) {
         currentRecipeId = recipe.id;
         document.getElementById('detail-title').textContent = recipe.title;
+
+        const hero = document.getElementById('detail-hero');
+        if (recipe.image) {
+            hero.style.backgroundImage = `url('${recipe.image}')`;
+            hero.innerHTML = `
+                <button type="button" class="close-btn-floating" id="close-detail-dialog-btn">
+                    <span class="material-icons">close</span>
+                </button>
+                <div class="hero-overlay">
+                    <h2 id="detail-title">${recipe.title}</h2>
+                </div>
+            `;
+        } else {
+            const color = getRandomColor(recipe.title);
+            hero.style.backgroundImage = 'none';
+            hero.style.backgroundColor = color;
+            hero.innerHTML = `
+                <button type="button" class="close-btn-floating" id="close-detail-dialog-btn" style="background-color:rgba(0,0,0,0.1); color:#333;">
+                    <span class="material-icons">close</span>
+                </button>
+                <div class="hero-overlay" style="background: linear-gradient(to top, rgba(0,0,0,0.1), transparent); color: #333;">
+                    <h2 id="detail-title" style="text-shadow:none;">${recipe.title}</h2>
+                </div>
+                <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size: 80px; opacity: 0.2; font-weight:bold; color:#000;">
+                    ${getInitials(recipe.title)}
+                </div>
+            `;
+        }
+
+        // Re-bind close button since we overwrote HTML
+        document.getElementById('close-detail-dialog-btn').onclick = () => recipeDetailsDialog.close();
 
         const ingredientsUl = document.getElementById('detail-ingredients');
         ingredientsUl.innerHTML = recipe.ingredients.map(ing => `<li>${ing}</li>`).join('');
@@ -140,12 +197,11 @@ document.addEventListener('DOMContentLoaded', () => {
         recipeDetailsDialog.showModal();
     }
 
-    closeDetailDialogBtn.addEventListener('click', () => recipeDetailsDialog.close());
+    // closeDetailDialogBtn.addEventListener('click', () => recipeDetailsDialog.close()); // Removed as we bind dynamically
 
     deleteRecipeBtn.addEventListener('click', () => {
         if (confirm('¿Seguro que quieres eliminar esta receta?')) {
             state.recipes = state.recipes.filter(r => r.id !== currentRecipeId);
-            // Cleanup plan? Optional, but good practice
             saveData();
             renderRecipes();
             recipeDetailsDialog.close();
@@ -173,6 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
             editingRecipeId = recipeToEdit.id;
             document.getElementById('dialog-title').textContent = 'Editar Receta';
             document.getElementById('recipe-title').value = recipeToEdit.title;
+            document.getElementById('recipe-image').value = recipeToEdit.image || '';
             document.getElementById('recipe-instructions').value = recipeToEdit.instructions;
             recipeToEdit.ingredients.forEach(ing => addIngredientInput(ing));
         } else {
@@ -206,6 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         const title = document.getElementById('recipe-title').value;
+        const image = document.getElementById('recipe-image').value;
         const instructions = document.getElementById('recipe-instructions').value;
         const ingredientInputs = document.querySelectorAll('input[name="ingredient"]');
         const ingredients = Array.from(ingredientInputs).map(input => input.value).filter(val => val.trim() !== '');
@@ -214,13 +272,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Update
             const index = state.recipes.findIndex(r => r.id === editingRecipeId);
             if (index !== -1) {
-                state.recipes[index] = { ...state.recipes[index], title, ingredients, instructions };
+                state.recipes[index] = { ...state.recipes[index], title, image, ingredients, instructions };
             }
         } else {
             // Create
             const newRecipe = {
                 id: Date.now().toString(),
                 title,
+                image,
                 ingredients,
                 instructions
             };
@@ -233,44 +292,55 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    // --- Weekly Planner Logic V2 ---
-    const plannerContainer = document.querySelector('.week-grid');
-    const selectRecipeDialog = document.getElementById('select-recipe-dialog');
-    const closeSelectDialogBtn = document.getElementById('close-select-dialog');
-    const selectRecipeList = document.getElementById('select-recipe-list');
-
-    let targetDate = null;
-    let targetSlot = null; // 'lunch' or 'dinner'
-
-    function renderPlanner() {
+    // --- Shared Week Navigation ---
+    function renderWeekControls(container, callback) {
         const weekDays = getWeekDays(state.currentWeekOffset);
-        const todayStr = formatDate(new Date());
-
-        // Update Header Info
         const start = weekDays[0];
         const end = weekDays[6];
         const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
         const weekLabel = `${start.getDate()} ${monthNames[start.getMonth()]} - ${end.getDate()} ${monthNames[end.getMonth()]}`;
 
-        // Inject Week Navigation Header if not exists
-        let navHeader = document.querySelector('.planner-header');
+        let navHeader = container.querySelector('.planner-header');
         if (!navHeader) {
             navHeader = document.createElement('div');
             navHeader.className = 'planner-header';
-            plannerContainer.parentElement.insertBefore(navHeader, plannerContainer);
+            container.insertBefore(navHeader, container.firstChild);
         }
+
         navHeader.innerHTML = `
-            <button class="week-nav-btn" id="prev-week">←</button>
+            <button class="week-nav-btn prev-week">←</button>
             <h2>${weekLabel}</h2>
-            <button class="week-nav-btn" id="next-week">→</button>
+            <button class="week-nav-btn next-week">→</button>
         `;
 
-        // Bind Nav Buttons
-        document.getElementById('prev-week').onclick = () => { state.currentWeekOffset--; renderPlanner(); };
-        document.getElementById('next-week').onclick = () => { state.currentWeekOffset++; renderPlanner(); };
+        navHeader.querySelector('.prev-week').onclick = () => {
+            state.currentWeekOffset--;
+            callback();
+        };
+        navHeader.querySelector('.next-week').onclick = () => {
+            state.currentWeekOffset++;
+            callback();
+        };
+    }
 
-        plannerContainer.innerHTML = '';
 
+    // --- Weekly Planner Logic V2 ---
+    const plannerContainer = document.querySelector('.planner-container');
+    const weekGrid = document.querySelector('.week-grid');
+    const selectRecipeDialog = document.getElementById('select-recipe-dialog');
+    const closeSelectDialogBtn = document.getElementById('close-select-dialog');
+    const selectRecipeList = document.getElementById('select-recipe-list');
+    const recipeSearchInput = document.getElementById('recipe-search');
+
+    let targetDate = null;
+    let targetSlot = null; // 'lunch' or 'dinner'
+
+    function renderPlanner() {
+        renderWeekControls(plannerContainer, renderPlanner);
+
+        weekGrid.innerHTML = '';
+        const weekDays = getWeekDays(state.currentWeekOffset);
+        const todayStr = formatDate(new Date());
         const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
         weekDays.forEach(dateObj => {
@@ -313,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
             `;
-            plannerContainer.appendChild(dayCard);
+            weekGrid.appendChild(dayCard);
         });
     }
 
@@ -321,6 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.openSelectRecipe = (date, slot) => {
         targetDate = date;
         targetSlot = slot;
+        recipeSearchInput.value = ''; // Reset search
         renderSelectRecipeList();
         selectRecipeDialog.showModal();
     };
@@ -337,12 +408,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    function renderSelectRecipeList() {
+    function renderSelectRecipeList(filter = '') {
         selectRecipeList.innerHTML = '';
-        state.recipes.forEach(recipe => {
+
+        const filteredRecipes = state.recipes.filter(r =>
+            r.title.toLowerCase().includes(filter.toLowerCase())
+        );
+
+        if (filteredRecipes.length === 0) {
+            selectRecipeList.innerHTML = '<p style="text-align:center; color:var(--md-sys-color-outline);">No se encontraron recetas.</p>';
+            return;
+        }
+
+        filteredRecipes.forEach(recipe => {
             const item = document.createElement('div');
             item.className = 'select-recipe-item';
-            item.textContent = recipe.title;
+
+            // Reuse avatar logic
+            let imageHtml = '';
+            if (recipe.image) {
+                imageHtml = `<img src="${recipe.image}" alt="${recipe.title}" class="recipe-avatar" style="width:32px; height:32px; font-size:12px;">`;
+            } else {
+                const color = getRandomColor(recipe.title);
+                imageHtml = `<div class="recipe-avatar" style="background-color: ${color}; color: #333; width:32px; height:32px; font-size:12px;">${getInitials(recipe.title)}</div>`;
+            }
+
+            item.innerHTML = `
+                ${imageHtml}
+                <span>${recipe.title}</span>
+            `;
+
             item.addEventListener('click', () => {
                 if (!state.plan[targetDate]) state.plan[targetDate] = {};
                 state.plan[targetDate][targetSlot] = recipe.id;
@@ -354,14 +449,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    recipeSearchInput.addEventListener('input', (e) => {
+        renderSelectRecipeList(e.target.value);
+    });
+
     closeSelectDialogBtn.addEventListener('click', () => selectRecipeDialog.close());
 
 
     // --- Shopping List Logic ---
-    const shoppingListContainer = document.querySelector('.shopping-list');
+    const shoppingListContainer = document.querySelector('.shopping-list-container');
+    const shoppingList = document.querySelector('.shopping-list');
 
     function renderShoppingList() {
-        shoppingListContainer.innerHTML = '';
+        renderWeekControls(shoppingListContainer, renderShoppingList);
+
+        shoppingList.innerHTML = '';
         const ingredients = [];
         const weekDays = getWeekDays(state.currentWeekOffset);
 
@@ -382,7 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (ingredients.length === 0) {
-            shoppingListContainer.innerHTML = '<p style="text-align:center; color: var(--md-sys-color-outline); margin-top: 24px;">No hay ingredientes para esta semana.</p>';
+            shoppingList.innerHTML = '<p style="text-align:center; color: var(--md-sys-color-outline); margin-top: 24px;">No hay ingredientes para esta semana.</p>';
             return;
         }
 
@@ -404,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            shoppingListContainer.appendChild(item);
+            shoppingList.appendChild(item);
         });
     }
 
