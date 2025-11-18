@@ -2,26 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- State Management ---
     const state = {
         recipes: [],
-        weeklyPlan: {
-            monday: [],
-            tuesday: [],
-            wednesday: [],
-            thursday: [],
-            friday: [],
-            saturday: [],
-            sunday: []
-        }
-    };
-
-    const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    const dayLabels = {
-        monday: 'Lunes',
-        tuesday: 'Martes',
-        wednesday: 'Miércoles',
-        thursday: 'Jueves',
-        friday: 'Viernes',
-        saturday: 'Sábado',
-        sunday: 'Domingo'
+        // Plan structure: { "YYYY-MM-DD": { lunch: "recipeId", dinner: "recipeId" } }
+        plan: {},
+        currentWeekOffset: 0 // 0 = current week, -1 = previous, 1 = next
     };
 
     // --- DOM Elements ---
@@ -36,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addIngredientBtn = document.getElementById('add-ingredient-btn');
     const recipeListContainer = document.querySelector('.recipe-list');
     const emptyState = document.querySelector('.empty-state');
+    const pageTitle = document.getElementById('page-title');
 
     // --- Navigation Logic ---
     navItems.forEach(item => {
@@ -61,9 +45,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 'planner-view': 'Plan Semanal',
                 'shopping-view': 'Lista de Compra'
             };
-            document.getElementById('page-title').textContent = titleMap[targetId];
+            pageTitle.textContent = titleMap[targetId];
+
+            // Show/Hide FAB
+            fabAddRecipe.style.display = targetId === 'recipes-view' ? 'flex' : 'none';
         });
     });
+
+    // --- Helper Functions ---
+    function getMonday(d) {
+        d = new Date(d);
+        var day = d.getDay(),
+            diff = d.getDate() - day + (day == 0 ? -6 : 1); // adjust when day is sunday
+        return new Date(d.setDate(diff));
+    }
+
+    function formatDate(date) {
+        return date.toISOString().split('T')[0];
+    }
+
+    function getWeekDays(offset) {
+        const today = new Date();
+        const currentMonday = getMonday(today);
+        currentMonday.setDate(currentMonday.getDate() + (offset * 7));
+
+        const days = [];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(currentMonday);
+            d.setDate(d.getDate() + i);
+            days.push(d);
+        }
+        return days;
+    }
 
     // --- Recipe Management ---
 
@@ -74,15 +87,15 @@ document.addEventListener('DOMContentLoaded', () => {
             state.recipes = JSON.parse(savedRecipes);
             renderRecipes();
         }
-        const savedPlan = localStorage.getItem('recetario_plan');
+        const savedPlan = localStorage.getItem('recetario_plan_v2');
         if (savedPlan) {
-            state.weeklyPlan = JSON.parse(savedPlan);
+            state.plan = JSON.parse(savedPlan);
         }
     }
 
     function saveData() {
         localStorage.setItem('recetario_recipes', JSON.stringify(state.recipes));
-        localStorage.setItem('recetario_plan', JSON.stringify(state.weeklyPlan));
+        localStorage.setItem('recetario_plan_v2', JSON.stringify(state.plan));
     }
 
     // Render Recipes
@@ -112,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const recipeDetailsDialog = document.getElementById('recipe-details-dialog');
     const closeDetailDialogBtn = document.getElementById('close-detail-dialog');
     const deleteRecipeBtn = document.getElementById('delete-recipe-btn');
+    const editRecipeBtn = document.getElementById('edit-recipe-btn'); // New Edit Button
     let currentRecipeId = null;
 
     function openRecipeDetails(recipe) {
@@ -131,140 +145,45 @@ document.addEventListener('DOMContentLoaded', () => {
     deleteRecipeBtn.addEventListener('click', () => {
         if (confirm('¿Seguro que quieres eliminar esta receta?')) {
             state.recipes = state.recipes.filter(r => r.id !== currentRecipeId);
-
-            // Also remove from weekly plan
-            Object.keys(state.weeklyPlan).forEach(day => {
-                state.weeklyPlan[day] = state.weeklyPlan[day].filter(id => id !== currentRecipeId);
-            });
-
+            // Cleanup plan? Optional, but good practice
             saveData();
             renderRecipes();
             recipeDetailsDialog.close();
         }
     });
 
-    // --- Weekly Planner Logic ---
-    const plannerContainer = document.querySelector('.week-grid');
-    const selectRecipeDialog = document.getElementById('select-recipe-dialog');
-    const closeSelectDialogBtn = document.getElementById('close-select-dialog');
-    const selectRecipeList = document.getElementById('select-recipe-list');
-    let currentDayForPlan = null;
-
-    function renderPlanner() {
-        plannerContainer.innerHTML = '';
-        daysOfWeek.forEach(day => {
-            const dayCard = document.createElement('div');
-            dayCard.className = 'day-card';
-
-            const assignedRecipes = state.weeklyPlan[day].map(id => state.recipes.find(r => r.id === id)).filter(Boolean);
-
-            let recipesHtml = assignedRecipes.map(recipe => `
-                <div class="planned-recipe-chip">
-                    <span>${recipe.title}</span>
-                    <button class="remove-plan-btn" onclick="removeRecipeFromDay('${day}', '${recipe.id}')">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
-                    </button>
-                </div>
-            `).join('');
-
-            dayCard.innerHTML = `
-                <div class="day-header">
-                    <h3>${dayLabels[day]}</h3>
-                    <button class="add-to-day-btn" onclick="openSelectRecipe('${day}')">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
-                    </button>
-                </div>
-                <div class="day-recipes">
-                    ${recipesHtml}
-                </div>
-            `;
-            plannerContainer.appendChild(dayCard);
-        });
-    }
-
-    // Expose these to global scope for inline onclick handlers
-    window.openSelectRecipe = (day) => {
-        currentDayForPlan = day;
-        renderSelectRecipeList();
-        selectRecipeDialog.showModal();
-    };
-
-    window.removeRecipeFromDay = (day, recipeId) => {
-        state.weeklyPlan[day] = state.weeklyPlan[day].filter(id => id !== recipeId);
-        saveData();
-        renderPlanner();
-    };
-
-    function renderSelectRecipeList() {
-        selectRecipeList.innerHTML = '';
-        state.recipes.forEach(recipe => {
-            const item = document.createElement('div');
-            item.className = 'select-recipe-item';
-            item.textContent = recipe.title;
-            item.addEventListener('click', () => {
-                state.weeklyPlan[currentDayForPlan].push(recipe.id);
-                saveData();
-                renderPlanner();
-                selectRecipeDialog.close();
-            });
-            selectRecipeList.appendChild(item);
-        });
-    }
-
-    closeSelectDialogBtn.addEventListener('click', () => selectRecipeDialog.close());
-
-    // --- Shopping List Logic ---
-    const shoppingListContainer = document.querySelector('.shopping-list');
-
-    function renderShoppingList() {
-        shoppingListContainer.innerHTML = '';
-        const ingredients = [];
-
-        // Aggregate ingredients
-        daysOfWeek.forEach(day => {
-            state.weeklyPlan[day].forEach(recipeId => {
-                const recipe = state.recipes.find(r => r.id === recipeId);
-                if (recipe) {
-                    ingredients.push(...recipe.ingredients);
-                }
-            });
-        });
-
-        if (ingredients.length === 0) {
-            shoppingListContainer.innerHTML = '<p style="text-align:center; color: var(--md-sys-color-outline); margin-top: 24px;">No hay ingredientes para esta semana.</p>';
-            return;
+    // Edit Recipe Logic
+    editRecipeBtn.addEventListener('click', () => {
+        const recipe = state.recipes.find(r => r.id === currentRecipeId);
+        if (recipe) {
+            recipeDetailsDialog.close();
+            openRecipeDialog(recipe);
         }
+    });
 
-        // Simple list for now
-        ingredients.forEach((ing, index) => {
-            const item = document.createElement('div');
-            item.className = 'shopping-item';
-            item.innerHTML = `
-                <input type="checkbox" id="shop-item-${index}">
-                <span>${ing}</span>
-            `;
+    // --- Add/Edit Recipe Dialog Logic ---
+    let editingRecipeId = null;
 
-            // Toggle strikethrough
-            const checkbox = item.querySelector('input');
-            checkbox.addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    item.classList.add('checked');
-                } else {
-                    item.classList.remove('checked');
-                }
-            });
-
-            shoppingListContainer.appendChild(item);
-        });
-    }
-
-    // --- Add Recipe Dialog Logic ---
-    fabAddRecipe.addEventListener('click', () => {
+    function openRecipeDialog(recipeToEdit = null) {
         recipeForm.reset();
         ingredientsList.innerHTML = '';
-        addIngredientInput(); // Add one empty input
+        editingRecipeId = null;
+
+        if (recipeToEdit) {
+            editingRecipeId = recipeToEdit.id;
+            document.getElementById('dialog-title').textContent = 'Editar Receta';
+            document.getElementById('recipe-title').value = recipeToEdit.title;
+            document.getElementById('recipe-instructions').value = recipeToEdit.instructions;
+            recipeToEdit.ingredients.forEach(ing => addIngredientInput(ing));
+        } else {
+            document.getElementById('dialog-title').textContent = 'Nueva Receta';
+            addIngredientInput(); // Add one empty input
+        }
+
         recipeDialog.showModal();
-    });
+    }
+
+    fabAddRecipe.addEventListener('click', () => openRecipeDialog());
 
     closeDialogBtn.addEventListener('click', () => recipeDialog.close());
     cancelRecipeBtn.addEventListener('click', () => recipeDialog.close());
@@ -282,30 +201,212 @@ document.addEventListener('DOMContentLoaded', () => {
 
     addIngredientBtn.addEventListener('click', () => addIngredientInput());
 
-    // Save Recipe
+    // Save Recipe (Create or Update)
     recipeForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
-        const formData = new FormData(recipeForm);
         const title = document.getElementById('recipe-title').value;
         const instructions = document.getElementById('recipe-instructions').value;
-
-        // Collect ingredients
         const ingredientInputs = document.querySelectorAll('input[name="ingredient"]');
         const ingredients = Array.from(ingredientInputs).map(input => input.value).filter(val => val.trim() !== '');
 
-        const newRecipe = {
-            id: Date.now().toString(),
-            title,
-            ingredients,
-            instructions
-        };
+        if (editingRecipeId) {
+            // Update
+            const index = state.recipes.findIndex(r => r.id === editingRecipeId);
+            if (index !== -1) {
+                state.recipes[index] = { ...state.recipes[index], title, ingredients, instructions };
+            }
+        } else {
+            // Create
+            const newRecipe = {
+                id: Date.now().toString(),
+                title,
+                ingredients,
+                instructions
+            };
+            state.recipes.push(newRecipe);
+        }
 
-        state.recipes.push(newRecipe);
         saveData();
         renderRecipes();
         recipeDialog.close();
     });
+
+
+    // --- Weekly Planner Logic V2 ---
+    const plannerContainer = document.querySelector('.week-grid');
+    const selectRecipeDialog = document.getElementById('select-recipe-dialog');
+    const closeSelectDialogBtn = document.getElementById('close-select-dialog');
+    const selectRecipeList = document.getElementById('select-recipe-list');
+
+    let targetDate = null;
+    let targetSlot = null; // 'lunch' or 'dinner'
+
+    function renderPlanner() {
+        const weekDays = getWeekDays(state.currentWeekOffset);
+        const todayStr = formatDate(new Date());
+
+        // Update Header Info
+        const start = weekDays[0];
+        const end = weekDays[6];
+        const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+        const weekLabel = `${start.getDate()} ${monthNames[start.getMonth()]} - ${end.getDate()} ${monthNames[end.getMonth()]}`;
+
+        // Inject Week Navigation Header if not exists
+        let navHeader = document.querySelector('.planner-header');
+        if (!navHeader) {
+            navHeader = document.createElement('div');
+            navHeader.className = 'planner-header';
+            plannerContainer.parentElement.insertBefore(navHeader, plannerContainer);
+        }
+        navHeader.innerHTML = `
+            <button class="week-nav-btn" id="prev-week">←</button>
+            <h2>${weekLabel}</h2>
+            <button class="week-nav-btn" id="next-week">→</button>
+        `;
+
+        // Bind Nav Buttons
+        document.getElementById('prev-week').onclick = () => { state.currentWeekOffset--; renderPlanner(); };
+        document.getElementById('next-week').onclick = () => { state.currentWeekOffset++; renderPlanner(); };
+
+        plannerContainer.innerHTML = '';
+
+        const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+        weekDays.forEach(dateObj => {
+            const dateKey = formatDate(dateObj);
+            const isToday = dateKey === todayStr;
+            const dayPlan = state.plan[dateKey] || {};
+
+            const dayCard = document.createElement('div');
+            dayCard.className = `day-card ${isToday ? 'today' : ''}`;
+
+            const lunchRecipe = state.recipes.find(r => r.id === dayPlan.lunch);
+            const dinnerRecipe = state.recipes.find(r => r.id === dayPlan.dinner);
+
+            dayCard.innerHTML = `
+                <div class="day-header">
+                    <h3>${dayNames[dateObj.getDay()]} <span class="date-label">${dateObj.getDate()}</span></h3>
+                </div>
+                <div class="day-slots">
+                    <div class="slot">
+                        <span class="slot-label">Comida</span>
+                        <div class="slot-content ${lunchRecipe ? 'filled' : ''}" onclick="openSelectRecipe('${dateKey}', 'lunch')">
+                            ${lunchRecipe ? `
+                                <span class="planned-recipe-chip">
+                                    ${lunchRecipe.title}
+                                    <button class="remove-plan-btn" onclick="event.stopPropagation(); removeRecipeFromPlan('${dateKey}', 'lunch')">✕</button>
+                                </span>
+                            ` : '<span style="color:var(--md-sys-color-outline); font-size:24px;">+</span>'}
+                        </div>
+                    </div>
+                    <div class="slot">
+                        <span class="slot-label">Cena</span>
+                        <div class="slot-content ${dinnerRecipe ? 'filled' : ''}" onclick="openSelectRecipe('${dateKey}', 'dinner')">
+                            ${dinnerRecipe ? `
+                                <span class="planned-recipe-chip">
+                                    ${dinnerRecipe.title}
+                                    <button class="remove-plan-btn" onclick="event.stopPropagation(); removeRecipeFromPlan('${dateKey}', 'dinner')">✕</button>
+                                </span>
+                            ` : '<span style="color:var(--md-sys-color-outline); font-size:24px;">+</span>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+            plannerContainer.appendChild(dayCard);
+        });
+    }
+
+    // Global handlers for inline clicks
+    window.openSelectRecipe = (date, slot) => {
+        targetDate = date;
+        targetSlot = slot;
+        renderSelectRecipeList();
+        selectRecipeDialog.showModal();
+    };
+
+    window.removeRecipeFromPlan = (date, slot) => {
+        if (state.plan[date]) {
+            delete state.plan[date][slot];
+            // Clean up empty days
+            if (!state.plan[date].lunch && !state.plan[date].dinner) {
+                delete state.plan[date];
+            }
+            saveData();
+            renderPlanner();
+        }
+    };
+
+    function renderSelectRecipeList() {
+        selectRecipeList.innerHTML = '';
+        state.recipes.forEach(recipe => {
+            const item = document.createElement('div');
+            item.className = 'select-recipe-item';
+            item.textContent = recipe.title;
+            item.addEventListener('click', () => {
+                if (!state.plan[targetDate]) state.plan[targetDate] = {};
+                state.plan[targetDate][targetSlot] = recipe.id;
+                saveData();
+                renderPlanner();
+                selectRecipeDialog.close();
+            });
+            selectRecipeList.appendChild(item);
+        });
+    }
+
+    closeSelectDialogBtn.addEventListener('click', () => selectRecipeDialog.close());
+
+
+    // --- Shopping List Logic ---
+    const shoppingListContainer = document.querySelector('.shopping-list');
+
+    function renderShoppingList() {
+        shoppingListContainer.innerHTML = '';
+        const ingredients = [];
+        const weekDays = getWeekDays(state.currentWeekOffset);
+
+        // Aggregate ingredients for the CURRENTLY VIEWED week
+        weekDays.forEach(dateObj => {
+            const dateKey = formatDate(dateObj);
+            const dayPlan = state.plan[dateKey];
+            if (dayPlan) {
+                if (dayPlan.lunch) {
+                    const r = state.recipes.find(recipe => recipe.id === dayPlan.lunch);
+                    if (r) ingredients.push(...r.ingredients);
+                }
+                if (dayPlan.dinner) {
+                    const r = state.recipes.find(recipe => recipe.id === dayPlan.dinner);
+                    if (r) ingredients.push(...r.ingredients);
+                }
+            }
+        });
+
+        if (ingredients.length === 0) {
+            shoppingListContainer.innerHTML = '<p style="text-align:center; color: var(--md-sys-color-outline); margin-top: 24px;">No hay ingredientes para esta semana.</p>';
+            return;
+        }
+
+        // Simple list for now
+        ingredients.forEach((ing, index) => {
+            const item = document.createElement('div');
+            item.className = 'shopping-item';
+            item.innerHTML = `
+                <input type="checkbox" id="shop-item-${index}">
+                <span>${ing}</span>
+            `;
+
+            const checkbox = item.querySelector('input');
+            checkbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    item.classList.add('checked');
+                } else {
+                    item.classList.remove('checked');
+                }
+            });
+
+            shoppingListContainer.appendChild(item);
+        });
+    }
 
     // Initialize
     loadData();
