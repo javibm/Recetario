@@ -179,34 +179,17 @@
                 style="width: 64px; height: 64px; background: var(--md-sys-color-primary-container); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: var(--md-sys-color-on-primary-container);">
                 <span class="material-icons" style="font-size: 32px;">group</span>
             </div>
-            <h2 id="auth-title"
-                style="margin-bottom: 8px; font: var(--md-sys-typescale-headline-large); font-size: 24px;">Bienvenido
-            </h2>
-            <p id="auth-subtitle" style="color: var(--md-sys-color-on-surface-variant); margin-bottom: 32px;">Inicia
-                sesión para sincronizar tus recetas.</p>
+            <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+            <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-            <form id="auth-form" method="dialog">
-                <div class="input-group" style="text-align: left; margin-bottom: 16px;">
-                    <label for="auth-email">Email</label>
-                    <input type="email" id="auth-email" required placeholder="tu@email.com">
-                </div>
-            </form>
-        </div>
-    </dialog>
-
-    <!-- Firebase Compat SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
-    <script src="app.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').catch(err => {
-                console.log('SW registration failed (expected on file://):', err);
-            });
-        }
-    </script>
-    </body>
+            <script src="app.js"></script>
+            <script>
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('./sw.js').catch(err => {
+                        console.log('SW registration failed (expected on file://):', err);
+                    });
+                }
+            </script>
+            </body>
 
 </html>
