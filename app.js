@@ -48,6 +48,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleAuthModeBtn = document.getElementById('toggle-auth-mode');
     const authTitle = document.getElementById('auth-title');
     const authSubtitle = document.getElementById('auth-subtitle');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    // Logout Logic
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            if (confirm("¿Cerrar sesión?")) {
+                auth.signOut().then(() => {
+                    console.log("User signed out");
+                    // Optional: Clear local state if needed, but onAuthStateChanged handles UI
+                });
+            }
+        });
+    }
 
     let isRegistering = false;
 
