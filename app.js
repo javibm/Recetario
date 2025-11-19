@@ -1,10 +1,26 @@
+// Firebase Configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyBv-E1Z6Chy3jX_OHdOxY1XLk75Rjt6muU",
+    authDomain: "recetario-6f700.firebaseapp.com",
+    projectId: "recetario-6f700",
+    storageBucket: "recetario-6f700.firebasestorage.app",
+    messagingSenderId: "1074447371366",
+    appId: "1:1074447371366:web:e0689be620d903fe1671a7"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- State Management ---
     const state = {
         recipes: [],
-        // Plan structure: { "YYYY-MM-DD": { lunch: "recipeId", dinner: "recipeId" } }
         plan: {},
-        currentWeekOffset: 0 // 0 = current week, -1 = previous, 1 = next
+        currentWeekOffset: 0,
+        user: null,
+        groupId: null
     };
 
     // --- DOM Elements ---
@@ -20,6 +36,177 @@ document.addEventListener('DOMContentLoaded', () => {
     const recipeListContainer = document.querySelector('.recipe-list');
     const emptyState = document.querySelector('.empty-state');
     const pageTitle = document.getElementById('page-title');
+
+    // Auth Elements
+    const authDialog = document.getElementById('auth-dialog');
+    const authForm = document.getElementById('auth-form');
+    const authEmailInput = document.getElementById('auth-email');
+    const authPasswordInput = document.getElementById('auth-password');
+    const authGroupCodeInput = document.getElementById('auth-group-code');
+    const groupCodeContainer = document.getElementById('group-code-container');
+    const authSubmitBtn = document.getElementById('auth-submit-btn');
+    const toggleAuthModeBtn = document.getElementById('toggle-auth-mode');
+    const authTitle = document.getElementById('auth-title');
+    const authSubtitle = document.getElementById('auth-subtitle');
+
+    let isRegistering = false;
+
+    // --- Auth Logic ---
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            state.user = user;
+            // Fetch User Data to get Group ID
+            db.collection("users").doc(user.uid).get().then((userDoc) => {
+                if (userDoc.exists) {
+                    state.groupId = userDoc.data().groupId;
+                    console.log("Joined Group:", state.groupId);
+                    authDialog.close();
+                    initRealtimeListeners();
+                } else {
+                    // RECOVERY: User exists in Auth but not in Firestore (e.g. failed registration)
+                    console.warn("User document missing. Attempting auto-recovery...");
+
+                    // Default to own UID as group ID if we don't know the intended one
+                    const recoveryGroupId = user.uid;
+
+                    db.collection("users").doc(user.uid).set({
+                        email: user.email,
+                        groupId: recoveryGroupId
+                    }).then(() => {
+                        // Create the group as well
+                        return db.collection("groups").doc(recoveryGroupId).set({
+                            createdAt: new Date(),
+                            members: [user.uid],
+                            plan: {}
+                        });
+                    }).then(() => {
+                        console.log("Recovery successful. Created new group.");
+                        state.groupId = recoveryGroupId;
+                        authDialog.close();
+                        initRealtimeListeners();
+                    }).catch(err => {
+                        console.error("Recovery failed:", err);
+                        alert("Error crítico: No se pudo recuperar el perfil de usuario. " + err.message);
+                        auth.signOut();
+                    });
+                }
+            }).catch(error => {
+                console.error("Error fetching user doc:", error);
+                alert("Error al obtener datos de usuario: " + error.message);
+                auth.signOut();
+            });
+        } else {
+            state.user = null;
+            state.groupId = null;
+            state.recipes = [];
+            state.plan = {};
+            renderRecipes(); // Clear UI
+            authDialog.showModal();
+        }
+    });
+
+    toggleAuthModeBtn.addEventListener('click', () => {
+        isRegistering = !isRegistering;
+        if (isRegistering) {
+            authTitle.textContent = 'Crear Cuenta';
+            authSubtitle.textContent = 'Únete a tu pareja o crea un grupo nuevo.';
+            authSubmitBtn.textContent = 'Registrarse';
+            toggleAuthModeBtn.textContent = '¿Ya tienes cuenta? Inicia Sesión';
+            groupCodeContainer.style.display = 'block';
+            authGroupCodeInput.required = true;
+        } else {
+            authTitle.textContent = 'Bienvenido';
+            authSubtitle.textContent = 'Inicia sesión para sincronizar tus recetas.';
+            authSubmitBtn.textContent = 'Iniciar Sesión';
+            toggleAuthModeBtn.textContent = '¿No tienes cuenta? Regístrate';
+            groupCodeContainer.style.display = 'none';
+            authGroupCodeInput.required = false;
+        }
+    });
+
+    authForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = authEmailInput.value;
+        const password = authPasswordInput.value;
+        const groupCode = authGroupCodeInput.value.toUpperCase().trim();
+
+        if (isRegistering) {
+            // Register
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+
+                    // Create User Doc with Group ID
+                    return db.collection("users").doc(user.uid).set({
+                        email: email,
+                        groupId: groupCode
+                    }).then(() => {
+                        // Initialize Group Doc if it doesn't exist
+                        const groupRef = db.collection("groups").doc(groupCode);
+                        return groupRef.get().then((doc) => {
+                            if (!doc.exists) {
+                                return groupRef.set({
+                                    createdAt: new Date(),
+                                    members: [user.uid],
+                                    plan: {} // Initialize empty plan
+                                });
+                            } else {
+                                return groupRef.update({
+                                    members: firebase.firestore.FieldValue.arrayUnion(user.uid)
+                                });
+                            }
+                        });
+                    });
+                })
+                .catch((error) => {
+                    console.error("Auth Error:", error);
+                    alert("Error de autenticación: " + error.message);
+                });
+
+        } else {
+            // Login
+            auth.signInWithEmailAndPassword(email, password)
+                .catch((error) => {
+                    console.error("Auth Error:", error);
+                    alert("Error de autenticación: " + error.message);
+                });
+        }
+    });
+
+    // --- Realtime Data Sync ---
+    let unsubscribeRecipes = null;
+    let unsubscribePlan = null;
+
+    function initRealtimeListeners() {
+        if (!state.groupId) return;
+
+        // 1. Listen to Plan (Document)
+        unsubscribePlan = db.collection("groups").doc(state.groupId).onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                state.plan = data.plan || {};
+                if (document.getElementById('planner-view').classList.contains('active')) renderPlanner();
+                if (document.getElementById('shopping-view').classList.contains('active')) renderShoppingList();
+            }
+        }, error => {
+            console.error("Error listening to plan:", error);
+        });
+
+        // 2. Listen to Recipes (Subcollection)
+        unsubscribeRecipes = db.collection("groups").doc(state.groupId).collection("recipes")
+            .onSnapshot((snapshot) => {
+                state.recipes = [];
+                snapshot.forEach((doc) => {
+                    state.recipes.push({ id: doc.id, ...doc.data() });
+                });
+                renderRecipes();
+                // Also refresh planner/shopping list as they depend on recipe details
+                if (document.getElementById('planner-view').classList.contains('active')) renderPlanner();
+                if (document.getElementById('shopping-view').classList.contains('active')) renderShoppingList();
+            }, error => {
+                console.error("Error listening to recipes:", error);
+            });
+    }
 
     // --- Navigation Logic ---
     navItems.forEach(item => {
@@ -93,24 +280,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Recipe Management ---
 
-    // Load Data
-    function loadData() {
-        const savedRecipes = localStorage.getItem('recetario_recipes');
-        if (savedRecipes) {
-            state.recipes = JSON.parse(savedRecipes);
-            renderRecipes();
-        }
-        const savedPlan = localStorage.getItem('recetario_plan_v2');
-        if (savedPlan) {
-            state.plan = JSON.parse(savedPlan);
-        }
-    }
-
-    function saveData() {
-        localStorage.setItem('recetario_recipes', JSON.stringify(state.recipes));
-        localStorage.setItem('recetario_plan_v2', JSON.stringify(state.plan));
-    }
-
     // Render Recipes
     function renderRecipes() {
         recipeListContainer.innerHTML = '';
@@ -149,7 +318,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Recipe Details & Deletion
     const recipeDetailsDialog = document.getElementById('recipe-details-dialog');
-    const closeDetailDialogBtn = document.getElementById('close-detail-dialog');
     const deleteRecipeBtn = document.getElementById('delete-recipe-btn');
     const editRecipeBtn = document.getElementById('edit-recipe-btn');
     let currentRecipeId = null;
@@ -197,14 +365,17 @@ document.addEventListener('DOMContentLoaded', () => {
         recipeDetailsDialog.showModal();
     }
 
-    // closeDetailDialogBtn.addEventListener('click', () => recipeDetailsDialog.close()); // Removed as we bind dynamically
-
     deleteRecipeBtn.addEventListener('click', () => {
         if (confirm('¿Seguro que quieres eliminar esta receta?')) {
-            state.recipes = state.recipes.filter(r => r.id !== currentRecipeId);
-            saveData();
-            renderRecipes();
-            recipeDetailsDialog.close();
+            // Firestore Delete
+            db.collection("groups").doc(state.groupId).collection("recipes").doc(currentRecipeId).delete()
+                .then(() => {
+                    recipeDetailsDialog.close();
+                })
+                .catch(error => {
+                    console.error("Error deleting recipe:", error);
+                    alert("Error al eliminar la receta: " + error.message);
+                });
         }
     });
 
@@ -256,6 +427,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ingredientsList.appendChild(div);
     }
 
+    // Make addIngredientInput globally available for the onclick handler in HTML string
+    window.addIngredientInput = addIngredientInput;
+
     addIngredientBtn.addEventListener('click', () => addIngredientInput());
 
     // Save Recipe (Create or Update)
@@ -268,27 +442,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const ingredientInputs = document.querySelectorAll('input[name="ingredient"]');
         const ingredients = Array.from(ingredientInputs).map(input => input.value).filter(val => val.trim() !== '');
 
-        if (editingRecipeId) {
-            // Update
-            const index = state.recipes.findIndex(r => r.id === editingRecipeId);
-            if (index !== -1) {
-                state.recipes[index] = { ...state.recipes[index], title, image, ingredients, instructions };
-            }
-        } else {
-            // Create
-            const newRecipe = {
-                id: Date.now().toString(),
-                title,
-                image,
-                ingredients,
-                instructions
-            };
-            state.recipes.push(newRecipe);
-        }
+        const recipeData = {
+            title,
+            image,
+            ingredients,
+            instructions
+        };
 
-        saveData();
-        renderRecipes();
-        recipeDialog.close();
+        if (editingRecipeId) {
+            // Update Firestore
+            db.collection("groups").doc(state.groupId).collection("recipes").doc(editingRecipeId).update(recipeData)
+                .then(() => recipeDialog.close())
+                .catch(error => {
+                    console.error("Error updating recipe:", error);
+                    alert("Error al actualizar la receta: " + error.message);
+                });
+        } else {
+            // Create Firestore
+            db.collection("groups").doc(state.groupId).collection("recipes").add(recipeData)
+                .then(() => recipeDialog.close())
+                .catch(error => {
+                    console.error("Error adding recipe:", error);
+                    alert("Error al añadir la receta: " + error.message);
+                });
+        }
     });
 
 
@@ -397,15 +574,16 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.removeRecipeFromPlan = (date, slot) => {
-        if (state.plan[date]) {
-            delete state.plan[date][slot];
-            // Clean up empty days
-            if (!state.plan[date].lunch && !state.plan[date].dinner) {
-                delete state.plan[date];
-            }
-            saveData();
-            renderPlanner();
-        }
+        // Firestore Update: delete state.plan[date][slot]
+        const updateData = {};
+        updateData[`plan.${date}.${slot}`] = firebase.firestore.FieldValue.delete();
+
+        db.collection("groups").doc(state.groupId).update(updateData)
+            .then(() => renderPlanner())
+            .catch(error => {
+                console.error("Error removing recipe from plan:", error);
+                alert("Error al eliminar receta del plan: " + error.message);
+            });
     };
 
     function renderSelectRecipeList(filter = '') {
@@ -439,11 +617,17 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
 
             item.addEventListener('click', () => {
-                if (!state.plan[targetDate]) state.plan[targetDate] = {};
-                state.plan[targetDate][targetSlot] = recipe.id;
-                saveData();
-                renderPlanner();
-                selectRecipeDialog.close();
+                // Firestore Update
+                const updateData = {};
+                updateData[`plan.${targetDate}.${targetSlot}`] = recipe.id;
+                db.collection("groups").doc(state.groupId).update(updateData)
+                    .then(() => {
+                        selectRecipeDialog.close();
+                    })
+                    .catch(error => {
+                        console.error("Error adding recipe to plan:", error);
+                        alert("Error al añadir receta al plan: " + error.message);
+                    });
             });
             selectRecipeList.appendChild(item);
         });
@@ -509,7 +693,4 @@ document.addEventListener('DOMContentLoaded', () => {
             shoppingList.appendChild(item);
         });
     }
-
-    // Initialize
-    loadData();
 });
