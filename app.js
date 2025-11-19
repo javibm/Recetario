@@ -138,171 +138,219 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     authForm.addEventListener('submit', (e) => {
-        auth.signInWithEmailAndPassword(email, password)
-            .catch((error) => {
-                console.error("Auth Error:", error);
-                alert("Error de autenticación: " + error.message);
-            });
-    }
-    });
+        e.preventDefault();
+        const email = authEmailInput.value;
+        const password = authPasswordInput.value;
+        const groupCode = authGroupCodeInput.value.toUpperCase().trim();
 
-// --- Realtime Data Sync ---
-let unsubscribeRecipes = null;
-let unsubscribePlan = null;
+        if (isRegistering) {
+            // --- BLIND JOIN STRATEGY (Auth First -> Try Join -> Rollback if fail) ---
 
-function initRealtimeListeners() {
-    if (!state.groupId) return;
+            // 1. Create Auth User
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    const groupRef = db.collection("groups").doc(groupCode);
 
-    // 1. Listen to Plan (Document)
-    unsubscribePlan = db.collection("groups").doc(state.groupId).onSnapshot((doc) => {
-        if (doc.exists) {
-            const data = doc.data();
-            state.plan = data.plan || {};
-            if (document.getElementById('planner-view').classList.contains('active')) renderPlanner();
-            if (document.getElementById('shopping-view').classList.contains('active')) renderShoppingList();
-        }
-    }, error => {
-        console.error("Error listening to plan:", error);
-    });
+                    // 2. Try to JOIN the group (Blind Update)
+                    // This works with strict rules because we are adding OURSELVES to members
+                    return groupRef.update({
+                        members: firebase.firestore.FieldValue.arrayUnion(user.uid)
+                    }).then(() => {
+                        // 3. Success! Group exists and we joined. Now create profile.
+                        return db.collection("users").doc(user.uid).set({
+                            email: email,
+                            groupId: groupCode
+                        });
+                    }).catch((error) => {
+                        // 4. Failure (Group doesn't exist OR permission denied)
+                        console.error("Join Group Failed:", error);
+                        // Rollback: Delete the auth user we just created
+                        user.delete().then(() => {
+                            if (error.code === 'not-found') {
+                                alert("El código de grupo NO existe. Pídelo a tu administrador.");
+                            } else {
+                                alert("No se pudo unir al grupo: " + error.message);
+                            }
+                        });
+                    });
+                })
+                .catch((error) => {
+                    console.error("Registration Error:", error);
+                    if (error.code === 'auth/email-already-in-use') {
+                        alert("Este email ya está registrado. Inicia sesión.");
+                    } else {
+                        alert("Error de registro: " + error.message);
+                    }
+                });
 
-    // 2. Listen to Recipes (Subcollection)
-    unsubscribeRecipes = db.collection("groups").doc(state.groupId).collection("recipes")
-        .onSnapshot((snapshot) => {
-            state.recipes = [];
-            snapshot.forEach((doc) => {
-                state.recipes.push({ id: doc.id, ...doc.data() });
-            });
-            renderRecipes();
-            // Also refresh planner/shopping list as they depend on recipe details
-            if (document.getElementById('planner-view').classList.contains('active')) renderPlanner();
-            if (document.getElementById('shopping-view').classList.contains('active')) renderShoppingList();
-        }, error => {
-            console.error("Error listening to recipes:", error);
-        });
-}
-
-// --- Navigation Logic ---
-navItems.forEach(item => {
-    item.addEventListener('click', () => {
-        // Update UI
-        navItems.forEach(nav => nav.classList.remove('active'));
-        item.classList.add('active');
-
-        // Switch View
-        const targetId = item.getAttribute('data-target');
-        views.forEach(view => {
-            view.classList.remove('active');
-            if (view.id === targetId) {
-                view.classList.add('active');
-                if (targetId === 'planner-view') renderPlanner();
-                if (targetId === 'shopping-view') renderShoppingList();
-            }
-        });
-
-        // Update Header Title
-        const titleMap = {
-            'recipes-view': 'Recetas',
-            'planner-view': 'Plan Semanal',
-            'shopping-view': 'Lista de Compra'
-        };
-        pageTitle.textContent = titleMap[targetId];
-
-        // Show/Hide FAB
-        fabAddRecipe.style.display = targetId === 'recipes-view' ? 'flex' : 'none';
-    });
-});
-
-// --- Helper Functions ---
-function getMonday(d) {
-    d = new Date(d);
-    var day = d.getDay(),
-        diff = d.getDate() - day + (day == 0 ? -6 : 1); // adjust when day is sunday
-    return new Date(d.setDate(diff));
-}
-
-function formatDate(date) {
-    return date.toISOString().split('T')[0];
-}
-
-function getWeekDays(offset) {
-    const today = new Date();
-    const currentMonday = getMonday(today);
-    currentMonday.setDate(currentMonday.getDate() + (offset * 7));
-
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-        const d = new Date(currentMonday);
-        d.setDate(d.getDate() + i);
-        days.push(d);
-    }
-    return days;
-}
-
-function getInitials(name) {
-    return name.substring(0, 2).toUpperCase();
-}
-
-function getRandomColor(name) {
-    const colors = ['#FFCDD2', '#F8BBD0', '#E1BEE7', '#D1C4E9', '#C5CAE9', '#BBDEFB', '#B3E5FC', '#B2EBF2', '#B2DFDB', '#C8E6C9', '#DCEDC8', '#F0F4C3', '#FFF9C4', '#FFECB3', '#FFE0B2', '#FFCCBC'];
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-        hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return colors[Math.abs(hash) % colors.length];
-}
-
-// --- Recipe Management ---
-
-// Render Recipes
-function renderRecipes() {
-    recipeListContainer.innerHTML = '';
-
-    if (state.recipes.length === 0) {
-        emptyState.style.display = 'flex';
-        return;
-    } else {
-        emptyState.style.display = 'none';
-    }
-
-    state.recipes.forEach(recipe => {
-        const card = document.createElement('div');
-        card.className = 'recipe-card';
-
-        // Image or Initials
-        let imageHtml = '';
-        if (recipe.image) {
-            imageHtml = `<img src="${recipe.image}" alt="${recipe.title}" class="recipe-avatar">`;
         } else {
-            const color = getRandomColor(recipe.title);
-            imageHtml = `<div class="recipe-avatar" style="background-color: ${color}; color: #333;">${getInitials(recipe.title)}</div>`;
+            // Login
+            auth.signInWithEmailAndPassword(email, password)
+                .catch((error) => {
+                    console.error("Auth Error:", error);
+                    alert("Error de autenticación: " + error.message);
+                });
+        }
+    });
+
+    // --- Realtime Data Sync ---
+    let unsubscribeRecipes = null;
+    let unsubscribePlan = null;
+
+    function initRealtimeListeners() {
+        if (!state.groupId) return;
+
+        // 1. Listen to Plan (Document)
+        unsubscribePlan = db.collection("groups").doc(state.groupId).onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                state.plan = data.plan || {};
+                if (document.getElementById('planner-view').classList.contains('active')) renderPlanner();
+                if (document.getElementById('shopping-view').classList.contains('active')) renderShoppingList();
+            }
+        }, error => {
+            console.error("Error listening to plan:", error);
+        });
+
+        // 2. Listen to Recipes (Subcollection)
+        unsubscribeRecipes = db.collection("groups").doc(state.groupId).collection("recipes")
+            .onSnapshot((snapshot) => {
+                state.recipes = [];
+                snapshot.forEach((doc) => {
+                    state.recipes.push({ id: doc.id, ...doc.data() });
+                });
+                renderRecipes();
+                // Also refresh planner/shopping list as they depend on recipe details
+                if (document.getElementById('planner-view').classList.contains('active')) renderPlanner();
+                if (document.getElementById('shopping-view').classList.contains('active')) renderShoppingList();
+            }, error => {
+                console.error("Error listening to recipes:", error);
+            });
+    }
+
+    // --- Navigation Logic ---
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            // Update UI
+            navItems.forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+
+            // Switch View
+            const targetId = item.getAttribute('data-target');
+            views.forEach(view => {
+                view.classList.remove('active');
+                if (view.id === targetId) {
+                    view.classList.add('active');
+                    if (targetId === 'planner-view') renderPlanner();
+                    if (targetId === 'shopping-view') renderShoppingList();
+                }
+            });
+
+            // Update Header Title
+            const titleMap = {
+                'recipes-view': 'Recetas',
+                'planner-view': 'Plan Semanal',
+                'shopping-view': 'Lista de Compra'
+            };
+            pageTitle.textContent = titleMap[targetId];
+
+            // Show/Hide FAB
+            fabAddRecipe.style.display = targetId === 'recipes-view' ? 'flex' : 'none';
+        });
+    });
+
+    // --- Helper Functions ---
+    function getMonday(d) {
+        d = new Date(d);
+        var day = d.getDay(),
+            diff = d.getDate() - day + (day == 0 ? -6 : 1); // adjust when day is sunday
+        return new Date(d.setDate(diff));
+    }
+
+    function formatDate(date) {
+        return date.toISOString().split('T')[0];
+    }
+
+    function getWeekDays(offset) {
+        const today = new Date();
+        const currentMonday = getMonday(today);
+        currentMonday.setDate(currentMonday.getDate() + (offset * 7));
+
+        const days = [];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(currentMonday);
+            d.setDate(d.getDate() + i);
+            days.push(d);
+        }
+        return days;
+    }
+
+    function getInitials(name) {
+        return name.substring(0, 2).toUpperCase();
+    }
+
+    function getRandomColor(name) {
+        const colors = ['#FFCDD2', '#F8BBD0', '#E1BEE7', '#D1C4E9', '#C5CAE9', '#BBDEFB', '#B3E5FC', '#B2EBF2', '#B2DFDB', '#C8E6C9', '#DCEDC8', '#F0F4C3', '#FFF9C4', '#FFECB3', '#FFE0B2', '#FFCCBC'];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return colors[Math.abs(hash) % colors.length];
+    }
+
+    // --- Recipe Management ---
+
+    // Render Recipes
+    function renderRecipes() {
+        recipeListContainer.innerHTML = '';
+
+        if (state.recipes.length === 0) {
+            emptyState.style.display = 'flex';
+            return;
+        } else {
+            emptyState.style.display = 'none';
         }
 
-        card.innerHTML = `
+        state.recipes.forEach(recipe => {
+            const card = document.createElement('div');
+            card.className = 'recipe-card';
+
+            // Image or Initials
+            let imageHtml = '';
+            if (recipe.image) {
+                imageHtml = `<img src="${recipe.image}" alt="${recipe.title}" class="recipe-avatar">`;
+            } else {
+                const color = getRandomColor(recipe.title);
+                imageHtml = `<div class="recipe-avatar" style="background-color: ${color}; color: #333;">${getInitials(recipe.title)}</div>`;
+            }
+
+            card.innerHTML = `
                 <div class="recipe-info">
                     ${imageHtml}
                     <h3>${recipe.title}</h3>
                 </div>
                 <span class="material-icons">chevron_right</span>
             `;
-        card.addEventListener('click', () => openRecipeDetails(recipe));
-        recipeListContainer.appendChild(card);
-    });
-}
+            card.addEventListener('click', () => openRecipeDetails(recipe));
+            recipeListContainer.appendChild(card);
+        });
+    }
 
-// Recipe Details & Deletion
-const recipeDetailsDialog = document.getElementById('recipe-details-dialog');
-const deleteRecipeBtn = document.getElementById('delete-recipe-btn');
-const editRecipeBtn = document.getElementById('edit-recipe-btn');
-let currentRecipeId = null;
+    // Recipe Details & Deletion
+    const recipeDetailsDialog = document.getElementById('recipe-details-dialog');
+    const deleteRecipeBtn = document.getElementById('delete-recipe-btn');
+    const editRecipeBtn = document.getElementById('edit-recipe-btn');
+    let currentRecipeId = null;
 
-function openRecipeDetails(recipe) {
-    currentRecipeId = recipe.id;
-    document.getElementById('detail-title').textContent = recipe.title;
+    function openRecipeDetails(recipe) {
+        currentRecipeId = recipe.id;
+        document.getElementById('detail-title').textContent = recipe.title;
 
-    const hero = document.getElementById('detail-hero');
-    if (recipe.image) {
-        hero.style.backgroundImage = `url('${recipe.image}')`;
-        hero.innerHTML = `
+        const hero = document.getElementById('detail-hero');
+        if (recipe.image) {
+            hero.style.backgroundImage = `url('${recipe.image}')`;
+            hero.innerHTML = `
                 <button type="button" class="close-btn-floating" id="close-detail-dialog-btn">
                     <span class="material-icons">close</span>
                 </button>
@@ -310,11 +358,11 @@ function openRecipeDetails(recipe) {
                     <h2 id="detail-title">${recipe.title}</h2>
                 </div>
             `;
-    } else {
-        const color = getRandomColor(recipe.title);
-        hero.style.backgroundImage = 'none';
-        hero.style.backgroundColor = color;
-        hero.innerHTML = `
+        } else {
+            const color = getRandomColor(recipe.title);
+            hero.style.backgroundImage = 'none';
+            hero.style.backgroundColor = color;
+            hero.innerHTML = `
                 <button type="button" class="close-btn-floating" id="close-detail-dialog-btn" style="background-color:rgba(0,0,0,0.1); color:#333;">
                     <span class="material-icons">close</span>
                 </button>
@@ -325,186 +373,186 @@ function openRecipeDetails(recipe) {
                     ${getInitials(recipe.title)}
                 </div>
             `;
+        }
+
+        // Re-bind close button since we overwrote HTML
+        document.getElementById('close-detail-dialog-btn').onclick = () => recipeDetailsDialog.close();
+
+        const ingredientsUl = document.getElementById('detail-ingredients');
+        ingredientsUl.innerHTML = recipe.ingredients.map(ing => `<li>${ing}</li>`).join('');
+
+        document.getElementById('detail-instructions').textContent = recipe.instructions;
+
+        recipeDetailsDialog.showModal();
     }
 
-    // Re-bind close button since we overwrote HTML
-    document.getElementById('close-detail-dialog-btn').onclick = () => recipeDetailsDialog.close();
+    deleteRecipeBtn.addEventListener('click', () => {
+        if (confirm('¿Seguro que quieres eliminar esta receta?')) {
+            // Firestore Delete
+            db.collection("groups").doc(state.groupId).collection("recipes").doc(currentRecipeId).delete()
+                .then(() => {
+                    recipeDetailsDialog.close();
+                })
+                .catch(error => {
+                    console.error("Error deleting recipe:", error);
+                    alert("Error al eliminar la receta: " + error.message);
+                });
+        }
+    });
 
-    const ingredientsUl = document.getElementById('detail-ingredients');
-    ingredientsUl.innerHTML = recipe.ingredients.map(ing => `<li>${ing}</li>`).join('');
+    // Edit Recipe Logic
+    editRecipeBtn.addEventListener('click', () => {
+        const recipe = state.recipes.find(r => r.id === currentRecipeId);
+        if (recipe) {
+            recipeDetailsDialog.close();
+            openRecipeDialog(recipe);
+        }
+    });
 
-    document.getElementById('detail-instructions').textContent = recipe.instructions;
+    // --- Add/Edit Recipe Dialog Logic ---
+    let editingRecipeId = null;
 
-    recipeDetailsDialog.showModal();
-}
+    function openRecipeDialog(recipeToEdit = null) {
+        recipeForm.reset();
+        ingredientsList.innerHTML = '';
+        editingRecipeId = null;
 
-deleteRecipeBtn.addEventListener('click', () => {
-    if (confirm('¿Seguro que quieres eliminar esta receta?')) {
-        // Firestore Delete
-        db.collection("groups").doc(state.groupId).collection("recipes").doc(currentRecipeId).delete()
-            .then(() => {
-                recipeDetailsDialog.close();
-            })
-            .catch(error => {
-                console.error("Error deleting recipe:", error);
-                alert("Error al eliminar la receta: " + error.message);
-            });
-    }
-});
+        if (recipeToEdit) {
+            editingRecipeId = recipeToEdit.id;
+            document.getElementById('dialog-title').textContent = 'Editar Receta';
+            document.getElementById('recipe-title').value = recipeToEdit.title;
+            document.getElementById('recipe-image').value = recipeToEdit.image || '';
+            document.getElementById('recipe-instructions').value = recipeToEdit.instructions;
+            recipeToEdit.ingredients.forEach(ing => addIngredientInput(ing));
+        } else {
+            document.getElementById('dialog-title').textContent = 'Nueva Receta';
+            addIngredientInput(); // Add one empty input
+        }
 
-// Edit Recipe Logic
-editRecipeBtn.addEventListener('click', () => {
-    const recipe = state.recipes.find(r => r.id === currentRecipeId);
-    if (recipe) {
-        recipeDetailsDialog.close();
-        openRecipeDialog(recipe);
-    }
-});
-
-// --- Add/Edit Recipe Dialog Logic ---
-let editingRecipeId = null;
-
-function openRecipeDialog(recipeToEdit = null) {
-    recipeForm.reset();
-    ingredientsList.innerHTML = '';
-    editingRecipeId = null;
-
-    if (recipeToEdit) {
-        editingRecipeId = recipeToEdit.id;
-        document.getElementById('dialog-title').textContent = 'Editar Receta';
-        document.getElementById('recipe-title').value = recipeToEdit.title;
-        document.getElementById('recipe-image').value = recipeToEdit.image || '';
-        document.getElementById('recipe-instructions').value = recipeToEdit.instructions;
-        recipeToEdit.ingredients.forEach(ing => addIngredientInput(ing));
-    } else {
-        document.getElementById('dialog-title').textContent = 'Nueva Receta';
-        addIngredientInput(); // Add one empty input
+        recipeDialog.showModal();
     }
 
-    recipeDialog.showModal();
-}
+    fabAddRecipe.addEventListener('click', () => openRecipeDialog());
 
-fabAddRecipe.addEventListener('click', () => openRecipeDialog());
+    closeDialogBtn.addEventListener('click', () => recipeDialog.close());
+    cancelRecipeBtn.addEventListener('click', () => recipeDialog.close());
 
-closeDialogBtn.addEventListener('click', () => recipeDialog.close());
-cancelRecipeBtn.addEventListener('click', () => recipeDialog.close());
-
-// Dynamic Ingredients
-function addIngredientInput(value = '') {
-    const div = document.createElement('div');
-    div.className = 'ingredient-row';
-    div.innerHTML = `
+    // Dynamic Ingredients
+    function addIngredientInput(value = '') {
+        const div = document.createElement('div');
+        div.className = 'ingredient-row';
+        div.innerHTML = `
             <input type="text" name="ingredient" placeholder="Ingrediente" value="${value}" required style="flex:1">
             <button type="button" class="btn-text" onclick="this.parentElement.remove()" style="padding: 0 8px; min-width: auto;">✕</button>
         `;
-    ingredientsList.appendChild(div);
-}
-
-// Make addIngredientInput globally available for the onclick handler in HTML string
-window.addIngredientInput = addIngredientInput;
-
-addIngredientBtn.addEventListener('click', () => addIngredientInput());
-
-// Save Recipe (Create or Update)
-recipeForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    const title = document.getElementById('recipe-title').value;
-    const image = document.getElementById('recipe-image').value;
-    const instructions = document.getElementById('recipe-instructions').value;
-    const ingredientInputs = document.querySelectorAll('input[name="ingredient"]');
-    const ingredients = Array.from(ingredientInputs).map(input => input.value).filter(val => val.trim() !== '');
-
-    const recipeData = {
-        title,
-        image,
-        ingredients,
-        instructions
-    };
-
-    if (editingRecipeId) {
-        // Update Firestore
-        db.collection("groups").doc(state.groupId).collection("recipes").doc(editingRecipeId).update(recipeData)
-            .then(() => recipeDialog.close())
-            .catch(error => {
-                console.error("Error updating recipe:", error);
-                alert("Error al actualizar la receta: " + error.message);
-            });
-    } else {
-        // Create Firestore
-        db.collection("groups").doc(state.groupId).collection("recipes").add(recipeData)
-            .then(() => recipeDialog.close())
-            .catch(error => {
-                console.error("Error adding recipe:", error);
-                alert("Error al añadir la receta: " + error.message);
-            });
-    }
-});
-
-
-// --- Shared Week Navigation ---
-function renderWeekControls(container, callback) {
-    const weekDays = getWeekDays(state.currentWeekOffset);
-    const start = weekDays[0];
-    const end = weekDays[6];
-    const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-    const weekLabel = `${start.getDate()} ${monthNames[start.getMonth()]} - ${end.getDate()} ${monthNames[end.getMonth()]}`;
-
-    let navHeader = container.querySelector('.planner-header');
-    if (!navHeader) {
-        navHeader = document.createElement('div');
-        navHeader.className = 'planner-header';
-        container.insertBefore(navHeader, container.firstChild);
+        ingredientsList.appendChild(div);
     }
 
-    navHeader.innerHTML = `
+    // Make addIngredientInput globally available for the onclick handler in HTML string
+    window.addIngredientInput = addIngredientInput;
+
+    addIngredientBtn.addEventListener('click', () => addIngredientInput());
+
+    // Save Recipe (Create or Update)
+    recipeForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const title = document.getElementById('recipe-title').value;
+        const image = document.getElementById('recipe-image').value;
+        const instructions = document.getElementById('recipe-instructions').value;
+        const ingredientInputs = document.querySelectorAll('input[name="ingredient"]');
+        const ingredients = Array.from(ingredientInputs).map(input => input.value).filter(val => val.trim() !== '');
+
+        const recipeData = {
+            title,
+            image,
+            ingredients,
+            instructions
+        };
+
+        if (editingRecipeId) {
+            // Update Firestore
+            db.collection("groups").doc(state.groupId).collection("recipes").doc(editingRecipeId).update(recipeData)
+                .then(() => recipeDialog.close())
+                .catch(error => {
+                    console.error("Error updating recipe:", error);
+                    alert("Error al actualizar la receta: " + error.message);
+                });
+        } else {
+            // Create Firestore
+            db.collection("groups").doc(state.groupId).collection("recipes").add(recipeData)
+                .then(() => recipeDialog.close())
+                .catch(error => {
+                    console.error("Error adding recipe:", error);
+                    alert("Error al añadir la receta: " + error.message);
+                });
+        }
+    });
+
+
+    // --- Shared Week Navigation ---
+    function renderWeekControls(container, callback) {
+        const weekDays = getWeekDays(state.currentWeekOffset);
+        const start = weekDays[0];
+        const end = weekDays[6];
+        const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+        const weekLabel = `${start.getDate()} ${monthNames[start.getMonth()]} - ${end.getDate()} ${monthNames[end.getMonth()]}`;
+
+        let navHeader = container.querySelector('.planner-header');
+        if (!navHeader) {
+            navHeader = document.createElement('div');
+            navHeader.className = 'planner-header';
+            container.insertBefore(navHeader, container.firstChild);
+        }
+
+        navHeader.innerHTML = `
             <button class="week-nav-btn prev-week">←</button>
             <h2>${weekLabel}</h2>
             <button class="week-nav-btn next-week">→</button>
         `;
 
-    navHeader.querySelector('.prev-week').onclick = () => {
-        state.currentWeekOffset--;
-        callback();
-    };
-    navHeader.querySelector('.next-week').onclick = () => {
-        state.currentWeekOffset++;
-        callback();
-    };
-}
+        navHeader.querySelector('.prev-week').onclick = () => {
+            state.currentWeekOffset--;
+            callback();
+        };
+        navHeader.querySelector('.next-week').onclick = () => {
+            state.currentWeekOffset++;
+            callback();
+        };
+    }
 
 
-// --- Weekly Planner Logic V2 ---
-const plannerContainer = document.querySelector('.planner-container');
-const weekGrid = document.querySelector('.week-grid');
-const selectRecipeDialog = document.getElementById('select-recipe-dialog');
-const closeSelectDialogBtn = document.getElementById('close-select-dialog');
-const selectRecipeList = document.getElementById('select-recipe-list');
-const recipeSearchInput = document.getElementById('recipe-search');
+    // --- Weekly Planner Logic V2 ---
+    const plannerContainer = document.querySelector('.planner-container');
+    const weekGrid = document.querySelector('.week-grid');
+    const selectRecipeDialog = document.getElementById('select-recipe-dialog');
+    const closeSelectDialogBtn = document.getElementById('close-select-dialog');
+    const selectRecipeList = document.getElementById('select-recipe-list');
+    const recipeSearchInput = document.getElementById('recipe-search');
 
-let targetDate = null;
-let targetSlot = null; // 'lunch' or 'dinner'
+    let targetDate = null;
+    let targetSlot = null; // 'lunch' or 'dinner'
 
-function renderPlanner() {
-    renderWeekControls(plannerContainer, renderPlanner);
+    function renderPlanner() {
+        renderWeekControls(plannerContainer, renderPlanner);
 
-    weekGrid.innerHTML = '';
-    const weekDays = getWeekDays(state.currentWeekOffset);
-    const todayStr = formatDate(new Date());
-    const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        weekGrid.innerHTML = '';
+        const weekDays = getWeekDays(state.currentWeekOffset);
+        const todayStr = formatDate(new Date());
+        const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
-    weekDays.forEach(dateObj => {
-        const dateKey = formatDate(dateObj);
-        const isToday = dateKey === todayStr;
-        const dayPlan = state.plan[dateKey] || {};
+        weekDays.forEach(dateObj => {
+            const dateKey = formatDate(dateObj);
+            const isToday = dateKey === todayStr;
+            const dayPlan = state.plan[dateKey] || {};
 
-        const dayCard = document.createElement('div');
-        dayCard.className = `day-card ${isToday ? 'today' : ''}`;
+            const dayCard = document.createElement('div');
+            dayCard.className = `day-card ${isToday ? 'today' : ''}`;
 
-        const lunchRecipe = state.recipes.find(r => r.id === dayPlan.lunch);
-        const dinnerRecipe = state.recipes.find(r => r.id === dayPlan.dinner);
+            const lunchRecipe = state.recipes.find(r => r.id === dayPlan.lunch);
+            const dinnerRecipe = state.recipes.find(r => r.id === dayPlan.dinner);
 
-        dayCard.innerHTML = `
+            dayCard.innerHTML = `
                 <div class="day-header">
                     <h3>${dayNames[dateObj.getDay()]} <span class="date-label">${dateObj.getDate()}</span></h3>
                 </div>
@@ -533,137 +581,137 @@ function renderPlanner() {
                     </div>
                 </div>
             `;
-        weekGrid.appendChild(dayCard);
-    });
-}
-
-// Global handlers for inline clicks
-window.openSelectRecipe = (date, slot) => {
-    targetDate = date;
-    targetSlot = slot;
-    recipeSearchInput.value = ''; // Reset search
-    renderSelectRecipeList();
-    selectRecipeDialog.showModal();
-};
-
-window.removeRecipeFromPlan = (date, slot) => {
-    // Firestore Update: delete state.plan[date][slot]
-    const updateData = {};
-    updateData[`plan.${date}.${slot}`] = firebase.firestore.FieldValue.delete();
-
-    db.collection("groups").doc(state.groupId).update(updateData)
-        .then(() => renderPlanner())
-        .catch(error => {
-            console.error("Error removing recipe from plan:", error);
-            alert("Error al eliminar receta del plan: " + error.message);
+            weekGrid.appendChild(dayCard);
         });
-};
-
-function renderSelectRecipeList(filter = '') {
-    selectRecipeList.innerHTML = '';
-
-    const filteredRecipes = state.recipes.filter(r =>
-        r.title.toLowerCase().includes(filter.toLowerCase())
-    );
-
-    if (filteredRecipes.length === 0) {
-        selectRecipeList.innerHTML = '<p style="text-align:center; color:var(--md-sys-color-outline);">No se encontraron recetas.</p>';
-        return;
     }
 
-    filteredRecipes.forEach(recipe => {
-        const item = document.createElement('div');
-        item.className = 'select-recipe-item';
+    // Global handlers for inline clicks
+    window.openSelectRecipe = (date, slot) => {
+        targetDate = date;
+        targetSlot = slot;
+        recipeSearchInput.value = ''; // Reset search
+        renderSelectRecipeList();
+        selectRecipeDialog.showModal();
+    };
 
-        // Reuse avatar logic
-        let imageHtml = '';
-        if (recipe.image) {
-            imageHtml = `<img src="${recipe.image}" alt="${recipe.title}" class="recipe-avatar" style="width:32px; height:32px; font-size:12px;">`;
-        } else {
-            const color = getRandomColor(recipe.title);
-            imageHtml = `<div class="recipe-avatar" style="background-color: ${color}; color: #333; width:32px; height:32px; font-size:12px;">${getInitials(recipe.title)}</div>`;
+    window.removeRecipeFromPlan = (date, slot) => {
+        // Firestore Update: delete state.plan[date][slot]
+        const updateData = {};
+        updateData[`plan.${date}.${slot}`] = firebase.firestore.FieldValue.delete();
+
+        db.collection("groups").doc(state.groupId).update(updateData)
+            .then(() => renderPlanner())
+            .catch(error => {
+                console.error("Error removing recipe from plan:", error);
+                alert("Error al eliminar receta del plan: " + error.message);
+            });
+    };
+
+    function renderSelectRecipeList(filter = '') {
+        selectRecipeList.innerHTML = '';
+
+        const filteredRecipes = state.recipes.filter(r =>
+            r.title.toLowerCase().includes(filter.toLowerCase())
+        );
+
+        if (filteredRecipes.length === 0) {
+            selectRecipeList.innerHTML = '<p style="text-align:center; color:var(--md-sys-color-outline);">No se encontraron recetas.</p>';
+            return;
         }
 
-        item.innerHTML = `
+        filteredRecipes.forEach(recipe => {
+            const item = document.createElement('div');
+            item.className = 'select-recipe-item';
+
+            // Reuse avatar logic
+            let imageHtml = '';
+            if (recipe.image) {
+                imageHtml = `<img src="${recipe.image}" alt="${recipe.title}" class="recipe-avatar" style="width:32px; height:32px; font-size:12px;">`;
+            } else {
+                const color = getRandomColor(recipe.title);
+                imageHtml = `<div class="recipe-avatar" style="background-color: ${color}; color: #333; width:32px; height:32px; font-size:12px;">${getInitials(recipe.title)}</div>`;
+            }
+
+            item.innerHTML = `
                 ${imageHtml}
                 <span>${recipe.title}</span>
             `;
 
-        item.addEventListener('click', () => {
-            // Firestore Update
-            const updateData = {};
-            updateData[`plan.${targetDate}.${targetSlot}`] = recipe.id;
-            db.collection("groups").doc(state.groupId).update(updateData)
-                .then(() => {
-                    selectRecipeDialog.close();
-                })
-                .catch(error => {
-                    console.error("Error adding recipe to plan:", error);
-                    alert("Error al añadir receta al plan: " + error.message);
-                });
+            item.addEventListener('click', () => {
+                // Firestore Update
+                const updateData = {};
+                updateData[`plan.${targetDate}.${targetSlot}`] = recipe.id;
+                db.collection("groups").doc(state.groupId).update(updateData)
+                    .then(() => {
+                        selectRecipeDialog.close();
+                    })
+                    .catch(error => {
+                        console.error("Error adding recipe to plan:", error);
+                        alert("Error al añadir receta al plan: " + error.message);
+                    });
+            });
+            selectRecipeList.appendChild(item);
         });
-        selectRecipeList.appendChild(item);
-    });
-}
-
-recipeSearchInput.addEventListener('input', (e) => {
-    renderSelectRecipeList(e.target.value);
-});
-
-closeSelectDialogBtn.addEventListener('click', () => selectRecipeDialog.close());
-
-
-// --- Shopping List Logic ---
-const shoppingListContainer = document.querySelector('.shopping-list-container');
-const shoppingList = document.querySelector('.shopping-list');
-
-function renderShoppingList() {
-    renderWeekControls(shoppingListContainer, renderShoppingList);
-
-    shoppingList.innerHTML = '';
-    const ingredients = [];
-    const weekDays = getWeekDays(state.currentWeekOffset);
-
-    // Aggregate ingredients for the CURRENTLY VIEWED week
-    weekDays.forEach(dateObj => {
-        const dateKey = formatDate(dateObj);
-        const dayPlan = state.plan[dateKey];
-        if (dayPlan) {
-            if (dayPlan.lunch) {
-                const r = state.recipes.find(recipe => recipe.id === dayPlan.lunch);
-                if (r) ingredients.push(...r.ingredients);
-            }
-            if (dayPlan.dinner) {
-                const r = state.recipes.find(recipe => recipe.id === dayPlan.dinner);
-                if (r) ingredients.push(...r.ingredients);
-            }
-        }
-    });
-
-    if (ingredients.length === 0) {
-        shoppingList.innerHTML = '<p style="text-align:center; color: var(--md-sys-color-outline); margin-top: 24px;">No hay ingredientes para esta semana.</p>';
-        return;
     }
 
-    // Simple list for now
-    ingredients.forEach((ing, index) => {
-        const item = document.createElement('div');
-        item.className = 'shopping-item';
-        item.innerHTML = `
+    recipeSearchInput.addEventListener('input', (e) => {
+        renderSelectRecipeList(e.target.value);
+    });
+
+    closeSelectDialogBtn.addEventListener('click', () => selectRecipeDialog.close());
+
+
+    // --- Shopping List Logic ---
+    const shoppingListContainer = document.querySelector('.shopping-list-container');
+    const shoppingList = document.querySelector('.shopping-list');
+
+    function renderShoppingList() {
+        renderWeekControls(shoppingListContainer, renderShoppingList);
+
+        shoppingList.innerHTML = '';
+        const ingredients = [];
+        const weekDays = getWeekDays(state.currentWeekOffset);
+
+        // Aggregate ingredients for the CURRENTLY VIEWED week
+        weekDays.forEach(dateObj => {
+            const dateKey = formatDate(dateObj);
+            const dayPlan = state.plan[dateKey];
+            if (dayPlan) {
+                if (dayPlan.lunch) {
+                    const r = state.recipes.find(recipe => recipe.id === dayPlan.lunch);
+                    if (r) ingredients.push(...r.ingredients);
+                }
+                if (dayPlan.dinner) {
+                    const r = state.recipes.find(recipe => recipe.id === dayPlan.dinner);
+                    if (r) ingredients.push(...r.ingredients);
+                }
+            }
+        });
+
+        if (ingredients.length === 0) {
+            shoppingList.innerHTML = '<p style="text-align:center; color: var(--md-sys-color-outline); margin-top: 24px;">No hay ingredientes para esta semana.</p>';
+            return;
+        }
+
+        // Simple list for now
+        ingredients.forEach((ing, index) => {
+            const item = document.createElement('div');
+            item.className = 'shopping-item';
+            item.innerHTML = `
                 <input type="checkbox" id="shop-item-${index}">
                 <span>${ing}</span>
             `;
 
-        const checkbox = item.querySelector('input');
-        checkbox.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                item.classList.add('checked');
-            } else {
-                item.classList.remove('checked');
-            }
-        });
+            const checkbox = item.querySelector('input');
+            checkbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    item.classList.add('checked');
+                } else {
+                    item.classList.remove('checked');
+                }
+            });
 
-        shoppingList.appendChild(item);
-    });
-}
+            shoppingList.appendChild(item);
+        });
+    }
 });
