@@ -132,35 +132,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isRegistering) {
             // Register
-            auth.createUserWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    const user = userCredential.user;
+            const groupRef = db.collection("groups").doc(groupCode);
 
-                    // Create User Doc with Group ID
-                    return db.collection("users").doc(user.uid).set({
-                        email: email,
-                        groupId: groupCode
-                    }).then(() => {
-                        // Initialize Group Doc if it doesn't exist
-                        const groupRef = db.collection("groups").doc(groupCode);
-                        return groupRef.get().then((doc) => {
-                            if (!doc.exists) {
-                                return groupRef.set({
-                                    createdAt: new Date(),
-                                    members: [user.uid],
-                                    plan: {} // Initialize empty plan
-                                });
-                            } else {
-                                return groupRef.update({
-                                    members: firebase.firestore.FieldValue.arrayUnion(user.uid)
-                                });
-                            }
+            // 1. Verify Group Code Exists FIRST
+            groupRef.get().then((doc) => {
+                if (!doc.exists) {
+                    throw new Error("El código de grupo no es válido. Pide el código a tu administrador.");
+                }
+
+                // 2. Create Auth User
+                return auth.createUserWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        const user = userCredential.user;
+
+                        // 3. Create User Doc
+                        return db.collection("users").doc(user.uid).set({
+                            email: email,
+                            groupId: groupCode
+                        }).then(() => {
+                            // 4. Add to Group Members
+                            return groupRef.update({
+                                members: firebase.firestore.FieldValue.arrayUnion(user.uid)
+                            });
                         });
                     });
-                })
+            })
                 .catch((error) => {
-                    console.error("Auth Error:", error);
-                    alert("Error de autenticación: " + error.message);
+                    console.error("Auth/Group Error:", error);
+                    // Clean up auth user if group check failed AFTER auth creation (unlikely here due to order, but good practice)
+                    // In this flow, we check group BEFORE auth, so no cleanup needed.
+                    alert("Error de registro: " + error.message);
                 });
 
         } else {
