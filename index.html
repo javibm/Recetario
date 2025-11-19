@@ -358,24 +358,70 @@
 
         <!-- Auth Dialog -->
         <dialog id="auth-dialog" class="auth-dialog" style="max-width: 360px;">
+            <input type="text" id="recipe-search" placeholder="Buscar receta...">
+            </div>
+            </div>
+            <div class="select-list" id="select-recipe-list"
+                style="padding: 0 24px 24px; display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto;">
+                <!-- List of recipes to choose from -->
+            </div>
+        </dialog>
+
+        <!-- Auth Dialog -->
+        <dialog id="auth-dialog" class="auth-dialog" style="max-width: 360px;">
             <div style="padding: 32px 24px; text-align: center;">
                 <div
                     style="width: 64px; height: 64px; background: var(--md-sys-color-primary-container); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: var(--md-sys-color-on-primary-container);">
                     <span class="material-icons" style="font-size: 32px;">group</span>
                 </div>
-                <!-- Firebase Compat SDKs -->
-                <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-                <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-                <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+                <h2 id="auth-title"
+                    style="margin-bottom: 8px; font: var(--md-sys-typescale-headline-large); font-size: 24px;">
+                    Bienvenido
+                </h2>
+                <p id="auth-subtitle" style="color: var(--md-sys-color-on-surface-variant); margin-bottom: 32px;">Inicia
+                    sesión para sincronizar tus recetas.</p>
 
-                <script src="app.js"></script>
-                <script>
-                    if ('serviceWorker' in navigator) {
-                        navigator.serviceWorker.register('./sw.js').catch(err => {
-                            console.log('SW registration failed (expected on file://):', err);
-                        });
-                    }
-                </script>
-                </body>
+                <form id="auth-form" method="dialog">
+                    <div class="input-group" style="text-align: left; margin-bottom: 16px;">
+                        <label for="auth-email">Email</label>
+                        <input type="email" id="auth-email" required placeholder="tu@email.com">
+                    </div>
+                    <div class="input-group" style="text-align: left; margin-bottom: 16px;">
+                        <label for="auth-password">Contraseña</label>
+                        <input type="password" id="auth-password" required placeholder="••••••••">
+                    </div>
+                    <div class="input-group" id="group-code-container"
+                        style="text-align: left; margin-bottom: 24px; display: none;">
+                        <label for="auth-group-code">Código de Grupo</label>
+                        <input type="text" id="auth-group-code" placeholder="Código de invitación"
+                            style="text-transform: uppercase;">
+                        <p style="font-size: 12px; color: var(--md-sys-color-outline); margin-top: 4px;">Pide el código
+                            al administrador del grupo.</p>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <button type="submit" class="btn-filled" style="width: 100%;" id="auth-submit-btn">Iniciar
+                            Sesión</button>
+                        <button type="button" class="btn-text" id="toggle-auth-mode">¿No tienes cuenta?
+                            Regístrate</button>
+                    </div>
+                </form>
+            </div>
+        </dialog>
+
+        <!-- Firebase Compat SDKs -->
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+        <script src="app.js"></script>
+        <script>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js').catch(err => {
+                    console.log('SW registration failed (expected on file://):', err);
+                });
+            }
+        </script>
+        </body>
 
 </html>
