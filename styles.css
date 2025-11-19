@@ -690,6 +690,201 @@ dialog footer {
 
 .shopping-item input[type="checkbox"] {
     width: 24px;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.recipe-card h3 {
+    font: var(--md-sys-typescale-title-medium);
+    font-size: 18px;
+    color: var(--md-sys-color-on-surface);
+}
+
+.ingredient-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+/* Planner Styles */
+.planner-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 0 8px;
+}
+
+.planner-header h2 {
+    font: var(--md-sys-typescale-title-medium);
+    font-size: 20px;
+}
+
+.week-nav-btn {
+    background: none;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--md-sys-color-on-surface);
+    transition: background-color 0.2s;
+}
+
+.week-nav-btn:hover {
+    background-color: var(--md-sys-color-surface-variant);
+}
+
+.week-grid {
+    display: grid;
+    gap: 16px;
+    padding-bottom: 80px;
+}
+
+.day-card {
+    background-color: var(--md-sys-color-surface);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-large);
+    padding: 16px;
+    animation: slideIn 0.3s ease-out;
+}
+
+.day-card.today {
+    border-color: var(--md-sys-color-primary);
+    background-color: var(--md-sys-color-surface-variant);
+}
+
+.day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.day-header h3 {
+    font: var(--md-sys-typescale-title-medium);
+    text-transform: capitalize;
+    font-size: 18px;
+}
+
+.day-header .date-label {
+    font-size: 12px;
+    color: var(--md-sys-color-outline);
+    margin-left: 8px;
+}
+
+.day-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.slot {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.slot-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--md-sys-color-on-surface-variant);
+    font-weight: 600;
+}
+
+.slot-content {
+    min-height: 40px;
+    border-radius: 8px;
+    border: 1px dashed var(--md-sys-color-outline-variant);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.slot-content:hover {
+    background-color: var(--md-sys-color-surface-variant);
+}
+
+.slot-content.filled {
+    border: none;
+    background-color: var(--md-sys-color-secondary-container);
+    justify-content: space-between;
+    padding: 8px 12px;
+}
+
+.planned-recipe-chip {
+    color: var(--md-sys-color-on-secondary-container);
+    font: var(--md-sys-typescale-body-large);
+    font-size: 14px;
+    font-weight: 500;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.remove-plan-btn {
+    background: none;
+    border: none;
+    color: var(--md-sys-color-on-surface-variant);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+}
+
+/* Select Recipe List */
+.select-recipe-item {
+    padding: 12px;
+    background-color: var(--md-sys-color-surface);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 12px;
+    cursor: pointer;
+    font: var(--md-sys-typescale-body-large);
+    animation: slideIn 0.2s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.select-recipe-item:hover {
+    background-color: var(--md-sys-color-secondary-container);
+    border-color: transparent;
+}
+
+/* Shopping List Styles */
+.shopping-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.shopping-item {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background-color: var(--md-sys-color-surface);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 12px;
+    gap: 16px;
+    transition: background-color 0.2s;
+    animation: slideIn 0.3s ease-out;
+}
+
+.shopping-item:hover {
+    background-color: var(--md-sys-color-surface-variant);
+}
+
+.shopping-item input[type="checkbox"] {
+    width: 24px;
     height: 24px;
     accent-color: var(--md-sys-color-primary);
     margin: 0;
@@ -698,4 +893,27 @@ dialog footer {
 .shopping-item.checked span {
     text-decoration: line-through;
     color: var(--md-sys-color-outline);
+}
+
+/* Icon Button (for logout, etc.) */
+.icon-btn {
+    background: none;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--md-sys-color-on-surface);
+    transition: background-color 0.2s;
+}
+
+.icon-btn:hover {
+    background-color: var(--md-sys-color-surface-variant);
+}
+
+.icon-btn .material-icons {
+    font-size: 24px;
 }
