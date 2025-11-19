@@ -14,6 +14,7 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 document.addEventListener('DOMContentLoaded', () => {
+
     // --- State Management ---
     const state = {
         recipes: [],
@@ -66,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Auth Logic ---
     auth.onAuthStateChanged((user) => {
+
         if (user) {
             state.user = user;
             // Fetch User Data to get Group ID
@@ -114,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
             state.recipes = [];
             state.plan = {};
             renderRecipes(); // Clear UI
+
             authDialog.showModal();
         }
     });
