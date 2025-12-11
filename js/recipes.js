@@ -126,7 +126,11 @@ function renderRecipes() {
 }
 
 function openRecipeDetails(recipe) {
-    const view = document.getElementById('recipe-details-view');
+    const detailsView = document.getElementById('recipe-details-view');
+    if (!detailsView) return;
+
+    // Push state for back navigation
+    history.pushState({ view: 'details', recipeId: recipe.id }, "Recipe Details", "#details");
 
     // Top Bar Title
     document.getElementById('detail-title').textContent = recipe.title;
@@ -201,11 +205,16 @@ function openRecipeDetails(recipe) {
     // Actions (Delete)
     document.getElementById('delete-recipe-btn').onclick = () => deleteRecipe(recipe.id);
 
+    // Close Button (Back)
+    const closeBtn = document.getElementById('close-details-btn');
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            history.back(); // Use browser back to trigger popstate
+        };
+    }
+
     // Show View
-    view.classList.add('active');
-    document.getElementById('close-details-btn').onclick = () => {
-        view.classList.remove('active');
-    };
+    detailsView.classList.add('active');
 }
 
 function openEditRecipe(recipe) {

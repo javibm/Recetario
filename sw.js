@@ -3,7 +3,7 @@ const ASSETS = [
     './',
     './index.html',
     './manifest.json',
-    './recetario_icon.svg',
+    './cooki_icon.png',
     // Modular CSS
     './css/variables.css',
     './css/base.css',

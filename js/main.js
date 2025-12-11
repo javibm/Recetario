@@ -204,5 +204,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial Render of Recipes (empty until auth returns data)
     if (typeof renderRecipes === 'function') renderRecipes();
 
+    // 5. Initialize Back Navigation (History API)
+    window.addEventListener('popstate', (event) => {
+        // Check for open modals/views
+        const detailsView = document.getElementById('recipe-details-view');
+        const addRecipeView = document.getElementById('recipe-form-view');
+
+        if (detailsView && detailsView.classList.contains('active')) {
+            // If details are open, just close them
+            detailsView.classList.remove('active');
+            // Re-render recipes list to ensure state is clean
+            if (typeof renderRecipes === 'function') renderRecipes();
+            return;
+        }
+
+        if (addRecipeView && addRecipeView.classList.contains('active')) {
+            addRecipeView.classList.remove('active');
+            return;
+        }
+
+        // Default behavior (if no modal open, it might just go back in browser history, which is fine)
+    });
+
     console.log("DEBUG: [main.js] Initialization complete.");
 });

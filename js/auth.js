@@ -18,7 +18,7 @@ function initAuthListeners() {
     // Auth State Observer
     auth.onAuthStateChanged((user) => {
         if (user) {
-            window.showAppLoader("Verificando perfil..."); // Show loader
+            window.showAppLoader("Verificando salud..."); // Show loader
             state.user = user;
 
             // Update Profile Button
@@ -90,7 +90,7 @@ function initAuthListeners() {
         const password = authPasswordInput.value;
         const groupCode = authGroupCodeInput.value.toUpperCase().trim();
 
-        window.showAppLoader(isRegistering ? "Creando cuenta..." : "Iniciando sesión...");
+        window.showAppLoader(isRegistering ? "Creando la buena vida..." : "Uniendose a la casita...");
 
         if (isRegistering) {
             // --- BLIND JOIN STRATEGY ---
