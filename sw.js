@@ -1,4 +1,4 @@
-const CACHE_NAME = 'recetario-v14-modular-update';
+const CACHE_NAME = 'recetario-v15-icon-fix';
 const ASSETS = [
     './',
     './index.html',
