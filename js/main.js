@@ -36,7 +36,7 @@ function initNavigation() {
 
             // Update Header Title & Subtitle
             const titleMap = {
-                'recipes-view': { title: 'Recetas', subtitle: '¿Qué vamos a cocinar hoy?' },
+                'recipes-view': { title: 'Mis Recetas', subtitle: '¿Qué vamos a cocinar hoy?' },
                 'planner-view': { title: 'Plan Semanal', subtitle: 'Organiza tus comidas' },
                 'shopping-view': { title: 'Lista de Compra', subtitle: 'Ingredientes necesarios' }
             };
@@ -84,14 +84,43 @@ function injectViews() {
     }
 }
 
+// --- Loader Logic ---
+window.showAppLoader = function (text = 'Cargando...') {
+    let loader = document.getElementById('app-loader');
+    if (!loader) {
+        // Inject if missing
+        loader = document.createElement('div');
+        loader.id = 'app-loader';
+        loader.innerHTML = `
+            <div class="loader-spinner"></div>
+            <div id="app-loader-text">${text}</div>
+        `;
+        document.body.appendChild(loader);
+    } else {
+        const textEl = document.getElementById('app-loader-text');
+        if (textEl) textEl.textContent = text;
+        loader.classList.remove('hidden');
+    }
+};
+
+window.hideAppLoader = function () {
+    const loader = document.getElementById('app-loader');
+    if (loader) {
+        loader.classList.add('hidden');
+    }
+};
+
 // --- Realtime Listeners ---
 // Make it global so auth.js can call it
 window.initRealtimeListeners = function () {
     console.log("DEBUG: [main.js] initRealtimeListeners called. GroupID:", state.groupId);
     if (!state.groupId) {
         console.warn("DEBUG: [main.js] No GroupID, skipping listeners.");
+        hideAppLoader(); // Ensure loader is hidden if no group logic runs
         return;
     }
+
+    window.showAppLoader("Evitando conflictos de pareja...");
 
     // 1. Listen to Recipes
     db.collection("groups").doc(state.groupId).collection("recipes")
@@ -112,8 +141,15 @@ window.initRealtimeListeners = function () {
             if (document.getElementById('shopping-view').classList.contains('active') && typeof renderShoppingList === 'function') {
                 renderShoppingList();
             }
+
+            // Allow a small delay for smooth transition then hide loader
+            setTimeout(() => {
+                window.hideAppLoader();
+            }, 500);
+
         }, error => {
             console.error("Error listening to recipes:", error);
+            window.hideAppLoader(); // Hide on error too
         });
 
     // 2. Listen to Plan

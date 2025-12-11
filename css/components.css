@@ -451,7 +451,70 @@ dialog.bottom-sheet-dialog .dialog-content {
     white-space: nowrap;
 }
 
-.unit-chip.selected {
-    background-color: var(--color-orange-primary);
-    color: white;
+
+/* App Loader (Throttler) */
+#app-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--md-sys-color-background);
+    /* Cream background */
+    z-index: 5000;
+    /* Highest priority */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
+}
+
+#app-loader.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Spinner */
+.loader-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(240, 101, 41, 0.2);
+    /* Light orange track */
+    border-top-color: var(--color-orange-primary);
+    /* Vibrant orange head */
+    border-radius: 50%;
+    animation: simple-spin 1s linear infinite;
+}
+
+@keyframes simple-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Loading Text */
+#app-loader-text {
+    font-family: var(--font-family-serif);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--color-dark-brown);
+    letter-spacing: 0.5px;
+    animation: text-pulse 1.5s ease-in-out infinite;
+    text-align: center;
+    max-width: 80%;
+}
+
+@keyframes text-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
 }

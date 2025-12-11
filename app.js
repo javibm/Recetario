@@ -391,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update Header Title
             const titleMap = {
-                'recipes-view': 'Recetas',
+                'recipes-view': 'Mis Recetas',
                 'planner-view': 'Plan Semanal',
                 'shopping-view': 'Lista de Compra'
             };

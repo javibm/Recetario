@@ -18,6 +18,7 @@ function initAuthListeners() {
     // Auth State Observer
     auth.onAuthStateChanged((user) => {
         if (user) {
+            window.showAppLoader("Verificando perfil..."); // Show loader
             state.user = user;
 
             // Update Profile Button
@@ -32,11 +33,12 @@ function initAuthListeners() {
                 if (doc.exists) {
                     state.groupId = doc.data().groupId;
                     authDialog.close();
-                    initRealtimeListeners();
+                    initRealtimeListeners(); // main.js listener will handle hiding loader
                 } else {
-                    // User exists but no profile (shouldn't happen in normal flow)
+                    // User exists but no profile
                     console.error("User has no profile/group");
                     auth.signOut();
+                    window.hideAppLoader();
                 }
             });
         } else {
@@ -53,11 +55,12 @@ function initAuthListeners() {
 
             renderRecipes(); // Clear UI
 
-            // Force close any open views/forms to prevent validation conflicts
+            // Force close any open views
             document.getElementById('recipe-form-view').classList.remove('active');
             document.getElementById('recipe-details-view').classList.remove('active');
             document.getElementById('recipe-form').reset();
 
+            window.hideAppLoader(); // Ensure loader is gone so user can see login
             authDialog.showModal();
         }
     });
@@ -87,6 +90,8 @@ function initAuthListeners() {
         const password = authPasswordInput.value;
         const groupCode = authGroupCodeInput.value.toUpperCase().trim();
 
+        window.showAppLoader(isRegistering ? "Creando cuenta..." : "Iniciando sesión...");
+
         if (isRegistering) {
             // --- BLIND JOIN STRATEGY ---
             auth.createUserWithEmailAndPassword(email, password)
@@ -104,6 +109,7 @@ function initAuthListeners() {
                     }).catch((error) => {
                         console.error("Join Group Failed:", error);
                         user.delete().then(() => {
+                            window.hideAppLoader();
                             if (error.code === 'not-found') {
                                 alert("El código de grupo NO existe. Pídelo a tu administrador.");
                             } else {
@@ -114,6 +120,7 @@ function initAuthListeners() {
                 })
                 .catch((error) => {
                     console.error("Registration Error:", error);
+                    window.hideAppLoader();
                     if (error.code === 'auth/email-already-in-use') {
                         alert("Este email ya está registrado. Inicia sesión.");
                     } else {
@@ -126,6 +133,7 @@ function initAuthListeners() {
             auth.signInWithEmailAndPassword(email, password)
                 .catch((error) => {
                     console.error("Auth Error:", error);
+                    window.hideAppLoader();
                     alert("Error de autenticación: " + error.message);
                 });
         }
