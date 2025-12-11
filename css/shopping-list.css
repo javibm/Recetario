@@ -1,0 +1,148 @@
+/* Shopping List Styles */
+
+.shopping-view-container {
+    padding: 0 24px 100px;
+    /* Removed top padding (handled by layouts.css) */
+}
+
+.shopping-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 24px;
+}
+
+.shopping-title {
+    font-family: var(--font-family-serif);
+    font-size: 28px;
+    color: var(--color-dark-brown);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.shopping-subtitle {
+    font-family: var(--font-family-sans);
+    font-size: 14px;
+    color: var(--color-grey-text);
+    margin-top: 4px;
+}
+
+.user-avatar-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--color-orange-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+/* Categories */
+.shopping-category {
+    margin-bottom: 24px;
+}
+
+.category-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-grey-text);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+
+.category-items {
+    background-color: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+/* Ingredient Item */
+.shopping-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    border-bottom: 1px solid var(--color-outline);
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.shopping-item:last-child {
+    border-bottom: none;
+}
+
+.shopping-item:hover {
+    background-color: #FAFAFA;
+}
+
+.item-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Checkbox Styling */
+.custom-checkbox {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--color-outline);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.shopping-item.checked .custom-checkbox {
+    background-color: var(--color-orange-primary);
+    border-color: var(--color-orange-primary);
+}
+
+.custom-checkbox .material-icons {
+    font-size: 16px;
+    color: white;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.2s;
+}
+
+.shopping-item.checked .custom-checkbox .material-icons {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.item-name {
+    font-size: 16px;
+    color: var(--color-dark-brown);
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.shopping-item.checked .item-name {
+    color: var(--color-grey-text);
+    text-decoration: line-through;
+}
+
+.item-qty {
+    font-size: 14px;
+    color: var(--color-grey-text);
+    font-weight: 500;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--color-grey-text);
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    color: var(--color-outline);
+}

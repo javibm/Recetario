@@ -1,0 +1,22 @@
+/* Dialogs (Legacy & Auth) */
+dialog {
+    border: none;
+    border-radius: 28px;
+    background-color: var(--md-sys-color-surface);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+    padding: 0;
+    max-width: 90vw;
+    width: 100%;
+    margin: auto;
+    z-index: 99999;
+    /* Force visibility */
+}
+
+dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.auth-dialog {
+    max-width: 360px;
+}

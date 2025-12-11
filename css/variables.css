@@ -1,0 +1,50 @@
+:root {
+    /* Palette */
+    --color-cream-bg: #F9F6F0;
+    --color-orange-primary: #F06529;
+    /* Vivid Orange */
+    --color-orange-container: #FFDBCC;
+    --color-white: #FFFFFF;
+    --color-dark-brown: #2D241E;
+    --color-grey-text: #666666;
+    --color-outline: #E0E0E0;
+
+    /* Semantic Colors */
+    --md-sys-color-primary: var(--color-orange-primary);
+    --md-sys-color-on-primary: #FFFFFF;
+    --md-sys-color-primary-container: var(--color-orange-container);
+    --md-sys-color-on-primary-container: var(--color-dark-brown);
+
+    --md-sys-color-background: #F9F6F0;
+    --md-sys-color-on-background: #2D241E;
+    --md-sys-color-surface: #F9F6F0;
+    --md-sys-color-on-surface: var(--color-dark-brown);
+    --md-sys-color-surface-variant: #F0F0F0;
+    --md-sys-color-on-surface-variant: var(--color-grey-text);
+
+    --md-sys-color-outline: var(--color-outline);
+    --md-sys-color-outline-variant: #F0F0F0;
+    --md-sys-color-error: #ba1a1a;
+
+    /* Semantic Aliases */
+    --color-dark-brown: #2D241E;
+    --color-grey-text: #666666;
+
+    /* Typography */
+    --md-sys-typescale-display-large: 400 57px/64px 'DM Serif Display', serif;
+    --md-sys-typescale-headline-large: 400 32px/40px 'DM Serif Display', serif;
+    --md-sys-typescale-title-medium: 500 16px/24px 'Manrope', sans-serif;
+    --md-sys-typescale-body-large: 400 16px/24px 'Manrope', sans-serif;
+    --md-sys-typescale-label-large: 500 14px/20px 'Manrope', sans-serif;
+    --md-sys-typescale-label-small: 500 11px/16px 'Manrope', sans-serif;
+
+    --font-family-serif: 'DM Serif Display', serif;
+    --font-family-sans: 'Manrope', sans-serif;
+
+    /* Shapes */
+    --md-sys-shape-corner-small: 8px;
+    --md-sys-shape-corner-medium: 12px;
+    --md-sys-shape-corner-large: 16px;
+    --md-sys-shape-corner-extra-large: 28px;
+    --md-sys-shape-corner-full: 9999px;
+}

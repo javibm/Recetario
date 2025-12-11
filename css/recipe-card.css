@@ -1,0 +1,155 @@
+/* Vertical Recipe Card Component - Final Refactor */
+.recipe-card {
+    background-color: var(--color-white);
+    border-radius: 24px;
+    /* Increased radius */
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.03);
+    /* Stronger shadow + slight outline */
+    position: relative;
+    height: 100%;
+    border: none;
+    overflow: hidden;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.recipe-card * {
+    box-sizing: border-box;
+}
+
+.recipe-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.03);
+}
+
+.recipe-card:active {
+    transform: scale(0.98);
+}
+
+/* Image Container */
+.recipe-image-container {
+    width: 100%;
+    padding-top: 55%;
+    /* Reduced height */
+    background-color: var(--md-sys-color-primary-container);
+    position: relative;
+    overflow: hidden;
+}
+
+.recipe-image-container img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Content Area */
+/* Content Area */
+.recipe-info {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 16px 12px;
+    /* Top: 16px (Image gap), Bottom: 12px */
+    flex: 1;
+    justify-content: space-between;
+}
+
+/* Title */
+.recipe-title {
+    font-family: var(--font-family-serif);
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--color-dark-brown);
+    line-height: 1.1;
+    margin-bottom: 4px;
+    /* Small gap to icons */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Meta Row - Strict 2 Column */
+.recipe-meta-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    border-top: 1px solid transparent;
+    /* Layout stabilizer */
+}
+
+/* Columns */
+.meta-col {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    /* Tight gap between icon and text */
+    font-family: var(--font-family-sans);
+    font-size: 13px;
+    color: #666;
+}
+
+.meta-col.left {
+    justify-content: flex-start;
+}
+
+.meta-col.right {
+    justify-content: flex-end;
+}
+
+/* Icons within columns */
+.meta-col .material-icons {
+    font-size: 16px;
+    color: #F06529;
+    /* Orange icons as per screenshot */
+    display: block;
+}
+
+/* Placeholder */
+.recipe-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 56px;
+    font-weight: 500;
+    color: var(--color-dark-brown);
+    font-family: var(--font-family-serif);
+    opacity: 0.8;
+}
+
+/* Heart Icon Overlay */
+.favorite-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-grey-text);
+    border: none;
+    cursor: pointer;
+    z-index: 5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.favorite-btn .material-icons {
+    font-size: 18px;
+}

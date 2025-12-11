@@ -1,0 +1,197 @@
+/* Recipe Details View - Refactored */
+
+/* Top Bar */
+.details-top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background-color: var(--md-sys-color-background);
+    /* border-bottom: 1px solid rgba(0,0,0,0.05); Optional */
+}
+
+.details-title-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    padding: 0 16px;
+}
+
+.details-title-container h2 {
+    font-family: var(--font-family-serif);
+    font-size: 20px;
+    color: var(--color-dark-brown);
+    margin: 0;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* Scroll Container */
+.details-scroll-container {
+    padding: 0 24px;
+    overflow-y: auto;
+    height: calc(100vh - 72px);
+    /* Adjust based on top bar height */
+}
+
+/* Hero Image */
+.detail-hero {
+    width: 100%;
+    height: 250px;
+    /* Specific height */
+    border-radius: 24px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    background-color: var(--md-sys-color-surface-variant);
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.detail-hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Meta Row (Time, Calories, etc) */
+/* Meta Row (Time, Calories, etc) */
+.detail-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* Spaced equally */
+    width: 100%;
+    margin-bottom: 32px;
+    flex-wrap: nowrap;
+}
+
+.detail-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-family-sans);
+    font-size: 15px;
+    color: var(--color-dark-brown);
+    font-weight: 500;
+}
+
+.detail-meta-item .material-icons {
+    color: var(--color-orange-primary);
+    font-size: 20px;
+}
+
+/* Ingredients List (Pill Style) */
+.ingredients-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 32px;
+}
+
+.ingredient-item-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #FFF8F0;
+    /* Light cream/orange tint */
+    border-radius: 12px;
+    font-family: var(--font-family-sans);
+    color: var(--color-dark-brown);
+    font-size: 15px;
+}
+
+.ing-name {
+    font-weight: 500;
+}
+
+.ing-qty {
+    color: var(--color-grey-text);
+}
+
+/* Section Titles */
+.section-title-serif {
+    font-family: var(--font-family-serif);
+    font-size: 22px;
+    color: var(--color-dark-brown);
+    margin-bottom: 16px;
+    font-weight: 700;
+}
+
+/* Instructions */
+.instructions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.instruction-step-card {
+    /* Keeping existing style but ensuring it matches context */
+    background-color: var(--color-white);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.step-number {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.step-content {
+    line-height: 1.6;
+    color: var(--color-grey-text);
+}
+
+/* Icon Buttons */
+.icon-btn {
+    background: transparent;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    /* Slight border for circle */
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--color-dark-brown);
+    transition: all 0.2s;
+}
+
+.icon-btn:hover {
+    background-color: var(--md-sys-color-surface-variant);
+}
+
+/* Detail Actions */
+.detail-actions {
+    display: flex;
+    justify-content: center;
+}
+
+.action-btn.delete {
+    background-color: #FFF0F0;
+    color: #D32F2F;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 100px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}

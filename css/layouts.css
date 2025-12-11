@@ -1,0 +1,170 @@
+/* App Container */
+.app-container {
+    /* padding-top: 110px; */
+    /* padding-bottom: 80px; */
+    /* Header is now scrollable, so no top padding needed */
+    padding-bottom: 96px;
+    /* Space for bottom nav + FAB */
+    min-height: 100vh;
+    box-sizing: border-box;
+    position: relative;
+    background-color: var(--md-sys-color-background);
+}
+
+.view {
+    display: none;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.view.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Header */
+.main-header {
+    position: relative;
+    /* Changed from fixed to flow with document */
+    width: 100%;
+    background-color: var(--md-sys-color-background);
+    color: var(--md-sys-color-on-surface);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 24px 16px;
+    /* Adjusted padding for better look - Relaxed bottom gap */
+    z-index: 100;
+}
+
+.header-top {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.app-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    margin: 0;
+    color: var(--md-sys-color-primary);
+}
+
+.app-subtitle {
+    font-size: 12px;
+    margin: 0;
+    color: var(--md-sys-color-outline);
+}
+
+.user-avatar-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* Bottom Navigation */
+.bottom-navigation {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background-color: var(--md-sys-color-surface);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+    z-index: 100;
+    padding-bottom: 16px;
+    /* Safe area for mobile */
+}
+
+.nav-item {
+    background: none;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--md-sys-color-on-surface-variant);
+    cursor: pointer;
+    padding: 8px;
+    flex: 1;
+}
+
+.nav-item.active {
+    color: var(--md-sys-color-primary);
+}
+
+.nav-item .icon-container {
+    padding: 4px 20px;
+    border-radius: 16px;
+    margin-bottom: 4px;
+    transition: background-color 0.2s;
+}
+
+.nav-item.active .icon-container {
+    background-color: var(--md-sys-color-secondary-container);
+}
+
+.nav-item svg {
+    fill: currentColor;
+}
+
+.nav-item .label {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Floating Action Button */
+.fab {
+    position: fixed;
+    bottom: 100px;
+    right: 16px;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 90;
+    transition: transform 0.2s;
+}
+
+.fab:active {
+    transform: scale(0.95);
+}
+
+/* Full Screen View (Ingredients, Recipe Details) */
+.view.full-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--md-sys-color-background);
+    z-index: 200;
+    padding: 0;
+    overflow-y: auto;
+}

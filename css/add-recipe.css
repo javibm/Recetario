@@ -1,0 +1,336 @@
+/* Add Recipe View Styles */
+
+.add-recipe-container {
+    padding: 0 24px 100px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Form Groups (JS: input-group) */
+.input-group {
+    margin-bottom: 24px;
+}
+
+.input-group label {
+    display: block;
+    font-family: var(--font-family-serif);
+    font-size: 18px;
+    color: var(--color-dark-brown);
+    margin-bottom: 8px;
+}
+
+/* Premium Input Styles (JS: premium-input) */
+.premium-input {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background-color: var(--color-white);
+    font-family: var(--font-family-sans);
+    font-size: 16px;
+    color: var(--color-dark-brown);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+.premium-input:focus {
+    outline: none;
+    background-color: var(--color-white);
+    border-color: var(--color-orange-primary);
+    box-shadow: 0 4px 12px rgba(232, 93, 4, 0.1);
+}
+
+.premium-input::placeholder {
+    color: var(--md-sys-color-outline);
+}
+
+/* Image Upload Area */
+.photo-placeholder {
+    cursor: text;
+    transition: all 0.2s;
+}
+
+.photo-placeholder:focus-within {
+    border-color: var(--color-orange-primary) !important;
+    background-color: #FFF8F0 !important;
+}
+
+/* Meta Items (JS: meta-item) */
+.meta-item {
+    display: flex;
+    align-items: center;
+    background-color: var(--color-white);
+    padding: 8px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    flex: 1;
+    /* Distribute space */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.meta-item:focus-within {
+    border-color: var(--color-orange-primary);
+}
+
+.meta-item .material-icons {
+    font-size: 20px;
+    color: var(--color-orange-primary);
+    margin-right: 8px;
+}
+
+.meta-input {
+    border: none;
+    background: none;
+    width: 100%;
+    font-family: var(--font-family-sans);
+    font-size: 14px;
+    color: var(--color-dark-brown);
+    outline: none;
+    padding: 0;
+}
+
+/* Ingredient List Items */
+.ingredient-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--color-white);
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+.btn-icon-filled {
+    background-color: var(--md-sys-color-primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-left: 8px;
+}
+
+.inline-add-container {
+    display: flex;
+    align-items: center;
+}
+
+/* Steps (JS: step-item) */
+.step-item {
+    background-color: var(--color-white);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.step-badge {
+    font-family: var(--font-family-serif);
+    color: var(--color-orange-primary);
+    font-weight: bold;
+}
+
+.step-input {
+    width: 100%;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: var(--font-family-sans);
+    resize: vertical;
+    min-height: 80px;
+    background-color: #FAFAFA;
+    box-sizing: border-box;
+}
+
+.step-input:focus {
+    outline: none;
+    border-color: var(--color-orange-primary);
+    background-color: var(--color-white);
+}
+
+.remove-step-btn,
+.remove-ing-btn {
+    background: none;
+    border: none;
+    color: var(--md-sys-color-outline);
+    cursor: pointer;
+    padding: 4px;
+}
+
+.remove-step-btn:hover,
+.remove-ing-btn:hover {
+    color: var(--md-sys-color-error);
+}
+
+/* Action Buttons */
+.dialog-footer {
+    display: flex;
+    gap: 16px;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.dialog-footer button {
+    flex: 1;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+}
+
+#cancel-recipe {
+    background-color: #F0F0F0;
+    color: var(--color-dark-brown);
+}
+
+.btn-filled,
+button[type="submit"] {
+    background-color: var(--color-orange-primary);
+    color: white;
+}
+
+.btn-text-action {
+    background: none;
+    border: 1px dashed var(--md-sys-color-outline);
+    border-radius: 12px;
+    padding: 12px;
+    width: 100%;
+    color: var(--color-orange-primary);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* --- Added Picker Styles --- */
+
+/* Time Wheel Logic */
+.time-picker-container {
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+    margin: 16px 0;
+}
+
+.time-wheel {
+    height: 100%;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    padding: 80px 0;
+    /* Pad top/bottom to center items */
+    box-sizing: border-box;
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.time-wheel::-webkit-scrollbar {
+    display: none;
+}
+
+.time-option {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-family-sans);
+    font-size: 18px;
+    color: var(--color-grey-text);
+    cursor: pointer;
+    transition: all 0.2s;
+    opacity: 0.5;
+}
+
+.time-option.selected {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--color-orange-primary);
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.selection-highlight {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 40px;
+    border-top: 2px solid var(--color-orange-primary);
+    border-bottom: 2px solid var(--color-orange-primary);
+    pointer-events: none;
+    opacity: 0.3;
+}
+
+/* Meal Type List */
+.meal-type-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.meal-type-option {
+    padding: 16px;
+    background-color: var(--md-sys-color-surface-container-low);
+    border-radius: 12px;
+    font-family: var(--font-family-sans);
+    font-size: 16px;
+    color: var(--md-sys-color-on-surface);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    border: 1px solid transparent;
+}
+
+.meal-type-option:hover {
+    background-color: var(--md-sys-color-surface-container-high);
+}
+
+.meal-type-option.selected {
+    background-color: #FFF8F0;
+    color: var(--color-orange-primary);
+    border-color: var(--color-orange-primary);
+    font-weight: 600;
+}
+
+/* Close Icon Button Premium Fix */
+.icon-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.icon-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.icon-btn .material-icons {
+    font-size: 24px;
+    color: var(--color-grey-text);
+}

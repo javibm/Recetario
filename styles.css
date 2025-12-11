@@ -108,12 +108,11 @@ main {
     flex: 1;
     overflow-y: auto;
     padding: 24px;
-    /* More padding */
     padding-bottom: 100px;
-    /* Space for FAB + Nav */
-    position: relative;
+    /* Space for FAB and Nav */
 }
 
+/* Views */
 .view {
     display: none;
     animation: fadeIn 0.3s ease-out;
@@ -123,51 +122,30 @@ main {
     display: block;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-/* Bottom Navigation */
-.bottom-navigation {
-    height: 80px;
-    background-color: var(--md-sys-color-surface);
-    border-top: 1px solid var(--md-sys-color-surface-variant);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding-bottom: 16px;
-    /* Safe area for mobile */
+/* Full Screen Views (Recipe Details & Form) */
+#recipe-details-view,
+#recipe-form-view {
     position: fixed;
-    /* Fixed to viewport */
-    bottom: 0;
+    top: 0;
     left: 0;
     width: 100%;
-    z-index: 20;
+    height: 100%;
+    z-index: 100;
+    background-color: var(--md-sys-color-background);
+    overflow-y: auto;
+    padding: 0;
 }
 
-/* Constrain Nav width on desktop to match container if desired, or keep full width */
+#recipe-details-view.active,
+#recipe-form-view.active {
+    display: flex;
+    flex-direction: column;
+}
+
 @media (min-width: 600px) {
-    .bottom-navigation {
+
+    #recipe-details-view,
+    #recipe-form-view {
         max-width: 600px;
         left: 50%;
         transform: translateX(-50%);
@@ -176,83 +154,40 @@ main {
     }
 }
 
-.nav-item {
+/* Buttons */
+.btn-filled {
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    border: none;
+    padding: 10px 24px;
+    border-radius: 100px;
+    font: var(--md-sys-typescale-label-large);
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+}
+
+.btn-filled:hover {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    opacity: 0.9;
+}
+
+.btn-text {
     background: none;
     border: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    cursor: pointer;
-    color: var(--md-sys-color-on-surface-variant);
-    width: 64px;
-}
-
-.nav-item .icon-container {
-    width: 64px;
-    height: 32px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s ease;
-}
-
-.nav-item svg {
-    fill: currentColor;
-}
-
-.nav-item.active {
-    color: var(--md-sys-color-on-surface);
-}
-
-.nav-item.active .icon-container {
-    background-color: var(--md-sys-color-secondary-container);
-    color: var(--md-sys-color-on-secondary-container);
-}
-
-.nav-item .label {
+    color: var(--md-sys-color-primary);
     font: var(--md-sys-typescale-label-large);
-    font-size: 12px;
-    font-weight: 600;
+    cursor: pointer;
+    padding: 10px 12px;
+    border-radius: 100px;
 }
 
-/* FAB */
-.fab {
-    position: fixed;
-    /* Fixed relative to viewport */
-    bottom: 100px;
-    /* Above nav bar */
-    right: 24px;
-    width: 56px;
-    height: 56px;
-    border-radius: 16px;
+.btn-text:hover {
     background-color: var(--md-sys-color-primary-container);
     color: var(--md-sys-color-on-primary-container);
-    border: none;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    z-index: 15;
-}
-
-/* Constrain FAB to container width on desktop */
-@media (min-width: 600px) {
-    .fab {
-        right: calc(50% - 300px + 24px);
-    }
-}
-
-.fab:active {
-    transform: scale(0.95);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-.fab svg {
-    fill: currentColor;
 }
 
 /* Empty State */
@@ -272,138 +207,100 @@ main {
     opacity: 0.5;
 }
 
-/* Dialog */
-dialog {
+/* FAB */
+.fab {
+    position: fixed;
+    bottom: 100px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
     border: none;
-    border-radius: var(--md-sys-shape-corner-extra-large);
-    background-color: var(--md-sys-color-surface);
-    padding: 0;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    margin: auto;
-}
-
-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.5);
-}
-
-dialog header {
-    padding: 24px 24px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-dialog header h2 {
-    font: var(--md-sys-typescale-headline-large);
-    font-size: 24px;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 50%;
-}
-
-/* Hero Dialog Styles */
-.hero-section {
-    height: 200px;
-    width: 100%;
-    position: relative;
-    background-color: var(--md-sys-color-surface-variant);
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    align-items: flex-end;
-}
-
-.hero-overlay {
-    width: 100%;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
-    padding: 24px;
-    color: white;
-}
-
-.hero-overlay h2 {
-    font: var(--md-sys-typescale-headline-large);
-    font-size: 28px;
-    margin: 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.close-btn-floating {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    background-color: rgba(0, 0, 0, 0.3);
-    border: none;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
     cursor: pointer;
-    backdrop-filter: blur(4px);
+    transition: all 0.2s;
+    z-index: 5;
 }
 
-.close-btn-floating svg {
+.fab:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.fab svg {
     fill: currentColor;
 }
 
-/* Search Bar */
-.search-bar {
-    display: flex;
-    align-items: center;
-    background-color: var(--md-sys-color-surface-variant);
-    border-radius: 24px;
-    padding: 8px 16px;
-    gap: 8px;
-    margin-bottom: 8px;
+@media (min-width: 600px) {
+    .fab {
+        right: calc(50% - 276px);
+        /* Center relative to container */
+    }
 }
 
-.search-bar input {
-    border: none;
+/* Bottom Navigation */
+.bottom-navigation {
+    height: 80px;
+    background-color: var(--md-sys-color-surface);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+    z-index: 10;
+}
+
+@media (min-width: 600px) {
+    .bottom-navigation {
+        max-width: 600px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 1px solid var(--md-sys-color-outline-variant);
+        border-right: 1px solid var(--md-sys-color-outline-variant);
+    }
+}
+
+.nav-item {
     background: none;
-    padding: 8px 0;
-    flex: 1;
-    outline: none;
-}
-
-.search-bar .material-icons {
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
     color: var(--md-sys-color-on-surface-variant);
+    padding: 8px 16px;
+    border-radius: 16px;
+    transition: all 0.2s;
 }
 
-/* Ingredient List Detail */
-#detail-ingredients li {
-    padding: 8px 0;
-    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+.nav-item.active {
+    color: var(--md-sys-color-on-surface);
+}
+
+.nav-item.active .icon-container {
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+}
+
+.icon-container {
+    width: 64px;
+    height: 32px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    transition: background-color 0.2s;
 }
 
-#detail-ingredients li::before {
-    content: "•";
-    color: var(--md-sys-color-primary);
-    font-size: 20px;
-}
-
-.form-content {
-    padding: 0 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+margin-bottom: 16px;
 }
 
 .input-group label {
@@ -411,51 +308,43 @@ dialog header h2 {
     color: var(--md-sys-color-on-surface-variant);
 }
 
-input,
-textarea {
+.input-group input,
+.input-group textarea,
+.input-group select {
     padding: 16px;
     border: 1px solid var(--md-sys-color-outline);
-    border-radius: 8px;
-    font: var(--md-sys-typescale-body-large);
-    background: transparent;
+    border-radius: 4px;
+    background-color: var(--md-sys-color-surface);
     color: var(--md-sys-color-on-surface);
-    font-family: inherit;
+    font: var(--md-sys-typescale-body-large);
+    transition: border-color 0.2s;
 }
 
-input:focus,
-textarea:focus {
-    outline: 2px solid var(--md-sys-color-primary);
-    border-color: transparent;
+.input-group input:focus,
+.input-group textarea:focus,
+.input-group select:focus {
+    border-color: var(--md-sys-color-primary);
+    outline: 2px solid var(--md-sys-color-primary-container);
 }
 
-dialog footer {
-    padding: 24px;
+/* Search Bar */
+.search-bar {
     display: flex;
-    justify-content: flex-end;
-    gap: 8px;
+    align-items: center;
+    background-color: var(--md-sys-color-surface-variant);
+    border-radius: 28px;
+    padding: 8px 16px;
+    margin-bottom: 16px;
 }
 
-.btn-text {
+.search-bar input {
+    border: none;
     background: none;
-    border: none;
-    padding: 10px 24px;
-    border-radius: 20px;
-    color: var(--md-sys-color-primary);
-    font: var(--md-sys-typescale-label-large);
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.btn-filled {
-    background-color: var(--md-sys-color-primary);
-    color: var(--md-sys-color-on-primary);
-    border: none;
-    padding: 10px 24px;
-    border-radius: 20px;
-    font: var(--md-sys-typescale-label-large);
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-left: 8px;
+    flex: 1;
+    font: var(--md-sys-typescale-body-large);
+    color: var(--md-sys-color-on-surface);
+    outline: none;
 }
 
 /* Recipe Card */
@@ -497,31 +386,55 @@ dialog footer {
     font-weight: 600;
     font-size: 18px;
     flex-shrink: 0;
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
 }
 
-.recipe-card h3 {
-    font: var(--md-sys-typescale-title-medium);
-    font-size: 18px;
-    color: var(--md-sys-color-on-surface);
+/* Hero Section (Details) */
+.hero-section {
+    height: 200px;
+    position: relative;
+    background-color: var(--md-sys-color-surface-variant);
+    flex-shrink: 0;
 }
 
-.ingredient-row {
+.hero-section img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 16px 24px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+    color: white;
+}
+
+.hero-overlay h2 {
+    margin: 0;
+    font: var(--md-sys-typescale-headline-large);
+    font-size: 24px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.close-btn-floating {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: rgba(0, 0, 0, 0.4);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
     display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-
-/* Planner Styles */
-.planner-header {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
-    padding: 0 8px;
-}
-
-.planner-header h2 {
-    font: var(--md-sys-typescale-title-medium);
+    justify-content: center;
+    color: white;
+    cursor: pointer;
     font-size: 20px;
 }
 
@@ -536,15 +449,62 @@ dialog footer {
     justify-content: center;
     cursor: pointer;
     color: var(--md-sys-color-on-surface);
-    transition: background-color 0.2s;
+    background-color: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+}
+
+.planned-recipe-chip {
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+    font: var(--md-sys-typescale-body-large);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: default;
+}
+
+/* Planner Styles */
+.planner-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 0 8px;
+}
+
+.planner-header h2 {
+    font: var(--md-sys-typescale-title-large);
+    color: var(--md-sys-color-on-surface);
+    margin: 0;
+}
+
+.week-nav-btn {
+    background: none;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--md-sys-color-on-surface);
+    transition: all 0.2s;
 }
 
 .week-nav-btn:hover {
     background-color: var(--md-sys-color-surface-variant);
+    border-color: var(--md-sys-color-outline);
 }
 
 .week-grid {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 16px;
     padding-bottom: 80px;
 }
@@ -552,9 +512,9 @@ dialog footer {
 .day-card {
     background-color: var(--md-sys-color-surface);
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: var(--md-sys-shape-corner-large);
+    border-radius: 16px;
     padding: 16px;
-    animation: slideIn 0.3s ease-out;
+    transition: border-color 0.2s;
 }
 
 .day-card.today {
@@ -566,27 +526,34 @@ dialog footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    margin-bottom: 12px;
 }
 
 .day-header h3 {
+    margin: 0;
     font: var(--md-sys-typescale-title-medium);
-    text-transform: capitalize;
-    font-size: 18px;
+    color: var(--md-sys-color-on-surface);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.day-header .date-label {
-    font-size: 12px;
-    color: var(--md-sys-color-outline);
-    margin-left: 8px;
+.date-label {
+    font-weight: 400;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 14px;
 }
 
 .day-slots {
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+.meal-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .slot {
@@ -596,54 +563,191 @@ dialog footer {
 }
 
 .slot-label {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font: var(--md-sys-typescale-label-small);
     color: var(--md-sys-color-on-surface-variant);
-    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 10px;
 }
 
 .slot-content {
-    min-height: 40px;
+    border: 1px dashed var(--md-sys-color-outline);
     border-radius: 8px;
-    border: 1px dashed var(--md-sys-color-outline-variant);
+    padding: 8px;
+    min-height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
 }
 
 .slot-content:hover {
     background-color: var(--md-sys-color-surface-variant);
+    border-color: var(--md-sys-color-primary);
 }
 
 .slot-content.filled {
     border: none;
-    background-color: var(--md-sys-color-secondary-container);
-    justify-content: space-between;
-    padding: 8px 12px;
+    background-color: transparent;
+    padding: 0;
+    display: block;
+    min-height: auto;
+    cursor: default;
 }
 
 .planned-recipe-chip {
+    background-color: var(--md-sys-color-secondary-container);
     color: var(--md-sys-color-on-secondary-container);
     font: var(--md-sys-typescale-body-large);
     font-size: 14px;
     font-weight: 500;
-    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    cursor: default;
 }
 
 .remove-plan-btn {
     background: none;
     border: none;
-    color: var(--md-sys-color-on-surface-variant);
+    color: var(--md-sys-color-on-secondary-container);
     cursor: pointer;
     padding: 4px;
     border-radius: 50%;
     display: flex;
+    opacity: 0.7;
+}
+
+.add-dish-btn {
+    background: none;
+    border: 1px dashed var(--md-sys-color-outline);
+    border-radius: 8px;
+    color: var(--md-sys-color-outline);
+    padding: 8px;
+    font-size: 12px;
+    background: none;
+    border: none;
+    color: var(--md-sys-color-on-secondary-container);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    opacity: 0.7;
+}
+
+.remove-plan-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    opacity: 1;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(10px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* View Specifics */
+.dialog-header {
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    background-color: var(--md-sys-color-surface);
+}
+
+.dialog-footer {
+    padding: 16px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+    background-color: var(--md-sys-color-surface);
+    margin-top: auto;
+}
+
+.form-content {
+    padding: 24px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.detail-content {
+    padding: 24px;
+}
+
+.detail-actions {
+    padding: 16px 24px;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    padding-bottom: 100px;
+    /* Space for fab/nav if needed */
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 100px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.action-btn.delete {
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-error, #ba1a1a);
+    border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.action-btn.edit {
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+}
+
+.section-title {
+    margin-bottom: 12px;
+    color: var(--md-sys-color-primary);
+    font-size: 18px;
+}
+
+.ingredient-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 24px;
+}
+
+.ingredient-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.instructions-text {
+    white-space: pre-wrap;
+    line-height: 1.6;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 /* Select Recipe List */
@@ -690,155 +794,155 @@ dialog footer {
 
 .shopping-item input[type="checkbox"] {
     width: 24px;
-    font-size: 18px;
-    flex-shrink: 0;
+    height: 24px;
+    accent-color: var(--md-sys-color-primary);
+    margin: 0;
 }
 
-.recipe-card h3 {
-    font: var(--md-sys-typescale-title-medium);
-    font-size: 18px;
-    color: var(--md-sys-color-on-surface);
+.shopping-item.checked span {
+    text-decoration: line-through;
+    color: var(--md-sys-color-outline);
 }
 
-.ingredient-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-
-/* Planner Styles */
-.planner-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    padding: 0 8px;
-}
-
-.planner-header h2 {
-    font: var(--md-sys-typescale-title-medium);
-    font-size: 20px;
-}
-
-.week-nav-btn {
+/* Icon Button (for logout, etc.) */
+.icon-btn {
     background: none;
-    border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 50%;
+    border: none;
     width: 40px;
     height: 40px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    color: var(--md-sys-color-on-surface);
-    transition: background-color 0.2s;
 }
 
-.week-nav-btn:hover {
-    background-color: var(--md-sys-color-surface-variant);
-}
-
-.week-grid {
-    display: grid;
-    gap: 16px;
-    padding-bottom: 80px;
-}
-
-.day-card {
-    background-color: var(--md-sys-color-surface);
-    border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: var(--md-sys-shape-corner-large);
-    padding: 16px;
-    animation: slideIn 0.3s ease-out;
-}
-
-.day-card.today {
-    border-color: var(--md-sys-color-primary);
-    background-color: var(--md-sys-color-surface-variant);
-}
-
-.day-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--md-sys-color-outline-variant);
-}
-
-.day-header h3 {
-    font: var(--md-sys-typescale-title-medium);
-    text-transform: capitalize;
-    font-size: 18px;
-}
-
-.day-header .date-label {
-    font-size: 12px;
-    color: var(--md-sys-color-outline);
-    margin-left: 8px;
-}
-
-.day-slots {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.slot {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.slot-label {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--md-sys-color-on-surface-variant);
-    font-weight: 600;
-}
-
-.slot-content {
-    min-height: 40px;
+.add-dish-btn {
+    background: none;
+    border: 1px dashed var(--md-sys-color-outline);
     border-radius: 8px;
-    border: 1px dashed var(--md-sys-color-outline-variant);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.slot-content:hover {
-    background-color: var(--md-sys-color-surface-variant);
-}
-
-.slot-content.filled {
-    border: none;
-    background-color: var(--md-sys-color-secondary-container);
-    justify-content: space-between;
-    padding: 8px 12px;
-}
-
-.planned-recipe-chip {
-    color: var(--md-sys-color-on-secondary-container);
-    font: var(--md-sys-typescale-body-large);
-    font-size: 14px;
-    font-weight: 500;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.remove-plan-btn {
+    color: var(--md-sys-color-outline);
+    padding: 8px;
+    font-size: 12px;
     background: none;
     border: none;
-    color: var(--md-sys-color-on-surface-variant);
+    color: var(--md-sys-color-on-secondary-container);
     cursor: pointer;
     padding: 4px;
     border-radius: 50%;
     display: flex;
+    opacity: 0.7;
+}
+
+.remove-plan-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    opacity: 1;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(10px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* View Specifics */
+.dialog-header {
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    background-color: var(--md-sys-color-surface);
+}
+
+.dialog-footer {
+    padding: 16px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+    background-color: var(--md-sys-color-surface);
+    margin-top: auto;
+}
+
+.form-content {
+    padding: 24px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.detail-content {
+    padding: 24px;
+}
+
+.detail-actions {
+    padding: 16px 24px;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    padding-bottom: 100px;
+    /* Space for fab/nav if needed */
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 100px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.action-btn.delete {
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-error, #ba1a1a);
+    border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.action-btn.edit {
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+}
+
+.section-title {
+    margin-bottom: 12px;
+    color: var(--md-sys-color-primary);
+    font-size: 18px;
+}
+
+.ingredient-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 24px;
+}
+
+.ingredient-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.instructions-text {
+    white-space: pre-wrap;
+    line-height: 1.6;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 /* Select Recipe List */
@@ -912,6 +1016,75 @@ dialog footer {
 
 .icon-btn:hover {
     background-color: var(--md-sys-color-surface-variant);
+}
+
+.add-dish-btn:hover {
+    background-color: var(--md-sys-color-surface-variant);
+}
+
+/* Ingredient Row Styles */
+.ingredient-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    /* Allow wrapping on very small screens, but usually stay in row */
+}
+
+.ing-qty {
+    flex: 1;
+    min-width: 60px;
+}
+
+.ing-unit {
+    flex: 2;
+    min-width: 80px;
+}
+
+.ing-name {
+    flex: 4;
+    min-width: 120px;
+}
+
+.ing-remove-btn {
+    padding: 0;
+    min-width: 24px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--md-sys-color-error);
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.ing-remove-btn:hover {
+    background-color: var(--md-sys-color-error-container);
+}
+
+/* Ensure inputs inside ingredient-row inherit general input styles but can be overridden */
+.ingredient-row input,
+.ingredient-row select {
+    padding: 10px 12px;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    transition: border-color 0.2s;
+}
+
+.ingredient-row input:focus,
+.ingredient-row select:focus {
+    outline: none;
+    border-color: var(--md-sys-color-primary);
+    border-width: 2px;
+    padding: 9px 11px;
 }
 
 .icon-btn .material-icons {

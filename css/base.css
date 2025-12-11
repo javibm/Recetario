@@ -1,0 +1,33 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    /* Ensure background covers everything (overscroll) */
+    background-color: var(--md-sys-color-background);
+    /* overflow-x: hidden; REMOVED to fix sticky positioning */
+    /* Smooth fonts */
+    -webkit-font-smoothing: antialiased;
+}
+
+h5,
+h6 {
+    font-family: var(--font-family-serif);
+    font-weight: 400;
+    margin: 0;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Scrollbar hidden for clean look */
+::-webkit-scrollbar {
+    display: none;
+}

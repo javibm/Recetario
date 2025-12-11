@@ -1,0 +1,457 @@
+/* Main Header */
+.main-header {
+    /* padding handled in layouts.css */
+    /* Reduced top padding */
+    background-color: var(--md-sys-color-background);
+    /* Position is handled in layouts.css (relative) */
+    z-index: 100;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    /* Reduced margin */
+}
+
+/* Search Bar Container */
+.search-bar-container {
+    margin-bottom: 16px;
+    margin-top: 0;
+    /* Removed top margin to close gap */
+    padding: 0 24px;
+}
+
+.app-title {
+    font-family: var(--font-family-serif);
+    font-size: 32px;
+    color: var(--color-dark-brown);
+    margin-bottom: -4px;
+    /* Tight spacing */
+    line-height: 1;
+    /* Tight line height */
+}
+
+.app-subtitle {
+    font-family: var(--font-family-sans);
+    font-size: 14px;
+    color: var(--color-grey-text);
+    margin-top: 0;
+}
+
+.user-avatar-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #E0E0E0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.user-avatar-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-avatar-small .material-icons {
+    font-size: 24px;
+    color: var(--color-grey-text);
+}
+
+.user-avatar-small.logged-in {
+    background-color: var(--color-orange-primary);
+    box-shadow: 0 2px 8px rgba(232, 93, 4, 0.3);
+}
+
+/* Search Bar */
+.search-bar {
+    display: flex;
+    align-items: center;
+    background-color: var(--color-white);
+    border-radius: 16px;
+    padding: 12px 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.search-icon {
+    color: var(--color-grey-text);
+    margin-right: 12px;
+}
+
+.search-bar input {
+    border: none;
+    background: none;
+    flex: 1;
+    font-family: var(--font-family-sans);
+    font-size: 16px;
+    color: var(--color-dark-brown);
+    outline: none;
+}
+
+.filter-btn {
+    background: #F0F0F0;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--color-dark-brown);
+}
+
+/* Category Pills */
+.categories-scroll {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 16px;
+    margin: 0 24px;
+    /* Align with search bar */
+    /* Hide scrollbar */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.categories-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.category-pill {
+    padding: 8px 20px;
+    border-radius: 100px;
+    background-color: var(--color-white);
+    border: 1px solid transparent;
+    font-family: var(--font-family-sans);
+    font-size: 14px;
+    color: var(--color-grey-text);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.category-pill.active {
+    background-color: var(--color-orange-primary);
+    color: var(--color-white);
+    box-shadow: 0 4px 10px rgba(232, 93, 4, 0.3);
+}
+
+/* Recipe Grid */
+.recipe-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding: 0 24px 24px;
+    /* Reduced bottom padding to avoid double spacing with app-container */
+}
+
+/* FAB */
+.fab {
+    position: fixed;
+    bottom: 100px;
+    right: 24px;
+    width: 64px;
+    /* Increased size */
+    height: 64px;
+    border-radius: 50%;
+    background-color: #F06529;
+    border: none;
+    box-shadow: 0 4px 12px rgba(232, 93, 4, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 90;
+}
+
+.fab:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(232, 93, 4, 0.5);
+}
+
+.fab .material-icons {
+    background-color: var(--color-white);
+    color: var(--color-orange-primary);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* Bottom Nav */
+.bottom-navigation {
+    background-color: var(--color-white);
+    border-top: 1px solid var(--color-outline);
+}
+
+.nav-item {
+    color: var(--color-grey-text);
+}
+
+.nav-item.active {
+    color: var(--color-orange-primary);
+}
+
+.nav-item.active .icon-container svg {
+    fill: var(--color-orange-primary);
+}
+
+/* Buttons */
+.btn-filled {
+    background-color: var(--color-orange-primary);
+    color: var(--color-white);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 100px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-outlined {
+    background-color: transparent;
+    color: var(--color-orange-primary);
+    border: 1px solid var(--color-orange-primary);
+    padding: 12px 24px;
+    border-radius: 100px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-outlined:hover {
+    border-color: var(--color-orange-primary);
+    color: var(--color-orange-primary);
+    background-color: #FFF8F0;
+}
+
+/* Shared Week Navigation Card */
+.week-nav-card {
+    background-color: var(--color-white);
+    margin-bottom: 24px;
+    padding: 12px 16px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
+    z-index: 10;
+}
+
+.week-label {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.week-text {
+    font-family: var(--font-family-sans);
+    font-size: 12px;
+    color: var(--color-grey-text);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+}
+
+.week-dates {
+    font-family: var(--font-family-serif);
+    font-size: 18px;
+    color: var(--color-dark-brown);
+    font-weight: 600;
+}
+
+.nav-arrow {
+    background: none;
+    border: none;
+    color: var(--color-dark-brown);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.nav-arrow:hover {
+    background-color: #F5F5F5;
+}
+
+.menu-item-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+    background: none;
+    border: none;
+    font-family: var(--font-family-sans);
+    font-size: 16px;
+    color: var(--color-dark-brown);
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.2s;
+}
+
+.menu-item-btn:hover {
+    background-color: #F5F5F5;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Profile Dropdown */
+.profile-dropdown {
+    position: fixed;
+    top: 70px;
+    right: 16px;
+    background-color: var(--color-white);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    width: 250px;
+    z-index: 9999;
+    overflow: hidden;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.dropdown-content {
+    padding: 8px 0;
+}
+
+.menu-divider {
+    height: 1px;
+    background-color: var(--md-sys-color-outline-variant);
+    margin: 8px 0;
+}
+
+/* Styles for Bottom Sheet Overlay (Div based) */
+.bottom-sheet-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 3000;
+    display: flex;
+    /* controlled by JS toggle */
+    align-items: flex-end;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.bottom-sheet-content {
+    background-color: var(--md-sys-color-surface);
+    width: 100%;
+    max-width: 600px;
+    /* Optional cap for tablets */
+    border-radius: 28px 28px 0 0;
+    padding-bottom: 24px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    animation: slideUp 0.3s ease-out;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Native Dialog Bottom Sheet Styles */
+dialog.bottom-sheet-dialog {
+    display: block;
+    /* Default state, browser handles open/close visibility usually, but we need to override the previous none */
+    position: fixed;
+    inset: auto 0 0 0;
+    /* Bottom aligned */
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    border: none;
+    background: transparent;
+    overflow: visible;
+    z-index: 3000;
+}
+
+dialog.bottom-sheet-dialog:not([open]) {
+    display: none;
+}
+
+dialog.bottom-sheet-dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+dialog.bottom-sheet-dialog .dialog-content {
+    background-color: var(--md-sys-color-surface);
+    border-radius: 28px 28px 0 0;
+    padding-bottom: 24px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    animation: slideUp 0.3s ease-out;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header style fix */
+.dialog-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    margin-bottom: 16px;
+}
+
+/* Unit Chips */
+.unit-chip {
+    padding: 8px 16px;
+    border-radius: 100px;
+    background-color: var(--md-sys-color-surface-container);
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--font-family-sans);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.unit-chip.selected {
+    background-color: var(--color-orange-primary);
+    color: white;
+}

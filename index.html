@@ -1,59 +1,63 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recetario</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="manifest" href="manifest.json?v=2">
-    <meta name="theme-color" content="#006c4c">
+
+    <!-- Modular CSS -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layouts.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/recipe-card.css">
+    <link rel="stylesheet" href="css/planner.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/add-recipe.css">
+    <link rel="stylesheet" href="css/shopping-list.css">
+    <link rel="stylesheet" href="css/recipe-details.css">
+    <link rel="stylesheet" href="css/ingredients.css">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#F9F6F0">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
-    <header class="top-app-bar">
-        <h1>Recetario</h1>
-        <div class="actions">
-            <button class="icon-btn" id="logout-btn" aria-label="Cerrar sesión">
-                <span class="material-icons">logout</span>
-            </button>
+    <header class="main-header">
+        <div class="header-top" style="margin-bottom: 0;">
+            <div>
+                <h1 class="app-title" id="header-title">Mis Recetas</h1>
+                <p class="app-subtitle" id="header-subtitle">¿Qué vamos a cocinar hoy?</p>
+            </div>
+            <div class="user-avatar-small" id="user-profile-btn">
+                <span class="material-icons">person</span>
+            </div>
         </div>
     </header>
 
     <main class="app-container">
+        <!-- Recipes View -->
         <div id="recipes-view" class="view active">
-            <div class="empty-state">
-                <span class="material-icons">menu_book</span>
-                <p>No hay recetas aún. ¡Añade una!</p>
-            </div>
-            <div class="recipe-list"></div>
-            <button id="fab-add-recipe" class="fab" aria-label="Añadir receta">
-                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
-                    <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
-                </svg>
-            </button>
+            <!-- Content injected by RecipesView.js -->
         </div>
 
+        <!-- Planner View -->
         <div id="planner-view" class="view">
-            <div class="planner-container">
-                <!-- Week Nav injected by JS -->
-                <div class="week-grid">
-                    <!-- Days will be generated here -->
-                </div>
-            </div>
+            <!-- Content injected by PlannerView.js -->
         </div>
 
+        <!-- Shopping View -->
         <div id="shopping-view" class="view">
-            <div class="shopping-list-container">
-                <div class="shopping-list">
-                    <!-- Items will be generated here -->
-                </div>
-            </div>
+            <!-- Content injected by ShoppingListView.js -->
         </div>
+
+        <!-- Recipe Details & Form will be injected by JS -->
     </main>
 
     <nav class="bottom-navigation">
@@ -86,107 +90,52 @@
         </button>
     </nav>
 
-    <!-- Modal for Adding Recipe -->
-    <dialog id="recipe-dialog">
-        <form method="dialog" id="recipe-form">
-            <header>
-                <h2 id="dialog-title">Nueva Receta</h2>
-                <button type="button" class="close-btn" id="close-dialog">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
-                        <path
-                            d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
-                    </svg>
+    <!-- Add Ingredient Dialog -->
+    <dialog id="add-ingredient-dialog" class="bottom-sheet-dialog">
+        <div class="dialog-content">
+            <header class="dialog-header">
+                <h3>Añadir Ingrediente</h3>
+                <button type="button" class="close-btn" id="close-ingredient-dialog">
+                    <span class="material-icons">close</span>
                 </button>
             </header>
-            <div class="form-content">
+            <div style="padding: 16px;">
                 <div class="input-group">
-                    <label for="recipe-title">Nombre de la receta</label>
-                    <input type="text" id="recipe-title" required placeholder="Ej. Paella Valenciana">
+                    <label>Buscar</label>
+                    <input type="text" id="ingredient-search-input" list="known-ingredients" placeholder="Ej: Harina">
                 </div>
-
-                <div class="input-group">
-                    <label for="recipe-image">URL de Imagen (Opcional)</label>
-                    <input type="url" id="recipe-image" placeholder="https://ejemplo.com/foto.jpg">
-                </div>
-
-                <div class="input-group">
-                    <label>Ingredientes</label>
-                    <div id="ingredients-list">
-                        <!-- Dynamic inputs -->
+                <div style="display: flex; gap: 16px;">
+                    <div class="input-group" style="flex: 1;">
+                        <label>Cantidad</label>
+                        <input type="number" id="ingredient-qty-input" placeholder="0">
                     </div>
-                    <button type="button" class="btn-text" id="add-ingredient-btn">+ Añadir ingrediente</button>
+                    <div class="input-group" style="flex: 1;">
+                        <label>Unidad</label>
+                        <input type="text" id="ingredient-unit-input" placeholder="gr, ml, pza" list="known-units">
+                        <datalist id="known-units">
+                            <option value="gr">
+                            <option value="kg">
+                            <option value="ml">
+                            <option value="l">
+                            <option value="taza">
+                            <option value="cda">
+                            <option value="cdta">
+                            <option value="pza">
+                        </datalist>
+                    </div>
                 </div>
-
-                <div class="input-group">
-                    <label for="recipe-instructions">Instrucciones</label>
-                    <textarea id="recipe-instructions" rows="4" placeholder="Pasos para preparar..."></textarea>
-                </div>
-            </div>
-            <footer>
-                <button type="button" class="btn-text" id="cancel-recipe">Cancelar</button>
-                <button type="submit" class="btn-filled">Guardar</button>
-            </footer>
-        </form>
-    </dialog>
-
-    <!-- Modal for Viewing Recipe -->
-    <dialog id="recipe-details-dialog" class="hero-dialog">
-        <div class="hero-section" id="detail-hero">
-            <button type="button" class="close-btn-floating" id="close-detail-dialog">
-                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
-                    <path
-                        d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
-                </svg>
-            </button>
-            <div class="hero-overlay">
-                <h2 id="detail-title"></h2>
+                <button type="button" class="btn-filled" id="confirm-add-ingredient"
+                    style="width: 100%; margin-top: 16px;">
+                    Añadir
+                </button>
             </div>
         </div>
-        <div class="detail-content" style="padding: 24px;">
-            <h3 style="margin-bottom: 12px; color: var(--md-sys-color-primary);">Ingredientes</h3>
-            <ul id="detail-ingredients" style="list-style: none; padding: 0; margin-bottom: 24px;"></ul>
-            <h3 style="margin-bottom: 12px; color: var(--md-sys-color-primary);">Instrucciones</h3>
-            <p id="detail-instructions"
-                style="white-space: pre-wrap; line-height: 1.6; color: var(--md-sys-color-on-surface-variant);">
-            </p>
-        </div>
-        <footer>
-            <button type="button" class="btn-text" id="delete-recipe-btn" style="color: var(--md-sys-color-error);">
-                <span class="material-icons" style="margin-right: 8px;">delete</span>
-                Eliminar
-            </button>
-            <button type="button" class="btn-filled" id="edit-recipe-btn">
-                <span class="material-icons" style="margin-right: 8px;">edit</span>
-                Editar
-            </button>
-        </footer>
     </dialog>
 
-    <!-- Modal for Selecting Recipe (Planner) -->
-    <dialog id="select-recipe-dialog">
-        <header>
-            <h2 style="font-size: 20px;">Seleccionar Receta</h2>
-            <button type="button" class="close-btn" id="close-select-dialog">
-                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
-                    <path
-                        d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
-                </svg>
-            </button>
-        </header>
-        <div style="padding: 0 24px 16px;">
-            <div class="search-bar">
-                <span class="material-icons">search</span>
-                <input type="text" id="recipe-search" placeholder="Buscar receta...">
-            </div>
-        </div>
-        <div class="select-list" id="select-recipe-list"
-            style="padding: 0 24px 24px; display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto;">
-            <!-- List of recipes to choose from -->
-        </div>
-    </dialog>
+
 
     <!-- Auth Dialog -->
-    <dialog id="auth-dialog" class="auth-dialog" style="max-width: 360px;">
+    <dialog id="auth-dialog" class="auth-dialog">
         <div style="padding: 32px 24px; text-align: center;">
             <div
                 style="width: 64px; height: 64px; background: var(--md-sys-color-primary-container); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: var(--md-sys-color-on-primary-container);">
@@ -200,22 +149,23 @@
                 Inicia sesión para sincronizar tus recetas.
             </p>
 
-            <form id="auth-form" method="dialog">
+            <form id="auth-form">
                 <div class="input-group" style="text-align: left; margin-bottom: 16px;">
                     <label for="auth-email">Email</label>
-                    <input type="email" id="auth-email" required placeholder="tu@email.com">
+                    <input type="email" id="auth-email" name="email" required placeholder="tu@email.com">
                 </div>
                 <div class="input-group" style="text-align: left; margin-bottom: 16px;">
                     <label for="auth-password">Contraseña</label>
-                    <input type="password" id="auth-password" required placeholder="••••••••">
+                    <input type="password" id="auth-password" name="password" required placeholder="••••••••">
                 </div>
                 <div class="input-group" id="group-code-container"
                     style="text-align: left; margin-bottom: 24px; display: none;">
                     <label for="auth-group-code">Código de Grupo</label>
-                    <input type="text" id="auth-group-code" placeholder="Código de invitación"
+                    <input type="text" id="auth-group-code" name="group-code" placeholder="Código de invitación"
                         style="text-transform: uppercase;">
-                    <p style="font-size: 12px; color: var(--md-sys-color-outline); margin-top: 4px;">Pide el
-                        código al administrador del grupo.</p>
+                    <p style="font-size: 12px; color: var(--md-sys-color-outline); margin-top: 4px;">Pide el código
+                        al
+                        administrador del grupo.</p>
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -228,19 +178,61 @@
         </div>
     </dialog>
 
+    <!-- Profile Dropdown Menu -->
+    <div id="profile-menu-dropdown" class="profile-dropdown" style="display: none;">
+        <div class="dropdown-content">
+            <button class="menu-item-btn" id="btn-manage-ingredients">
+                <span class="material-icons">kitchen</span>
+                Gestionar Ingredientes
+            </button>
+            <div class="menu-divider"></div>
+            <button class="menu-item-btn" id="btn-logout" style="color: #D32F2F;">
+                <span class="material-icons">logout</span>
+                Cerrar Sesión
+            </button>
+        </div>
+    </div>
+
+
+
+
+
+    <!-- Ingredients Manager View -->
+    <div id="ingredients-view" class="view full-screen"
+        style="background-color: var(--md-sys-color-background); z-index: 200;"></div>
+
+    <!-- Datalist for Autocomplete -->
+    <datalist id="known-ingredients"></datalist>
+
     <!-- Firebase Compat SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    <script src="app.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').catch(err => {
-                console.log('SW registration failed (expected on file://):', err);
-            });
-        }
-    </script>
+    <!-- View Templates -->
+    <script src="js/views/RecipesView.js"></script>
+    <script src="js/views/RecipeDetailsView.js"></script>
+    <script src="js/views/PlannerView.js"></script>
+    <script src="js/views/ShoppingListView.js"></script>
+    <script src="js/views/AddRecipeView.js"></script>
+    <script src="js/views/IngredientsView.js"></script>
+
+    <!-- Core & State -->
+    <script src="js/firebase-init.js"></script>
+    <script src="js/state.js"></script>
+
+    <!-- Feature Modules -->
+    <script src="js/recipe-card.js"></script>
+    <script src="js/recipes.js"></script>
+    <script src="js/planner.js"></script>
+    <script src="js/shopping-list.js"></script>
+    <script src="js/add-recipe.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ingredients-manager.js"></script>
+
+    <!-- Main Orchestrator -->
+    <script src="js/main.js"></script>
+
 </body>
 
 </html>

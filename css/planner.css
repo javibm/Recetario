@@ -1,0 +1,230 @@
+/* Planner View Styles */
+
+.planner-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 80px - 80px);
+    /* Viewport - Header - Nav */
+    padding: 0 24px 100px;
+    /* Removed top padding (handled by layouts.css) */
+}
+
+/* Day Card */
+.day-card {
+    background-color: var(--color-white);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    /* Reserve space for border */
+    scroll-margin-top: 24px;
+}
+
+.day-card.today {
+    border-color: var(--color-orange-primary);
+    background-color: var(--color-white);
+}
+
+.day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.day-title {
+    font-family: var(--font-family-sans);
+    /* Switch to Sans for true bold */
+    font-size: 20px;
+    /* Slightly smaller for Sans */
+    font-weight: 800;
+    /* Extra Bold */
+    color: var(--color-dark-brown);
+}
+
+.day-date {
+    font-family: var(--font-family-sans);
+    font-size: 14px;
+    color: var(--color-grey-text);
+    display: block;
+    margin-top: 4px;
+    font-weight: 400;
+}
+
+.day-toggle-icon {
+    transition: transform 0.3s ease;
+    color: var(--color-grey-text);
+}
+
+.day-card.collapsed .day-toggle-icon {
+    transform: rotate(-90deg);
+}
+
+/* Divider */
+.day-divider {
+    height: 1px;
+    background-color: #F0F0F0;
+    margin: 16px 0;
+    display: block;
+}
+
+.day-card.collapsed .day-divider {
+    display: none;
+}
+
+/* Slots Container */
+.day-slots {
+    display: block;
+    /* Default visible */
+    transition: all 0.3s ease;
+}
+
+.day-card.collapsed .day-slots {
+    display: none;
+}
+
+/* Meal Slot */
+.meal-slot {
+    margin-bottom: 20px;
+}
+
+.meal-slot:last-child {
+    margin-bottom: 0;
+}
+
+.meal-label {
+    font-family: var(--font-family-sans);
+    font-size: 14px;
+    color: var(--color-grey-text);
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Empty State Button */
+.add-meal-btn {
+    width: 100%;
+    padding: 16px;
+    border: 1px dashed #E0E0E0;
+    border-radius: 12px;
+    background-color: #FFF9F5;
+    /* Very light orange tint */
+    color: var(--color-orange-primary);
+    font-family: var(--font-family-sans);
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.add-meal-btn:hover {
+    background-color: #FFF0E6;
+    border-color: var(--color-orange-primary);
+}
+
+/* Filled Meal Card */
+.meal-card {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid var(--color-outline);
+    border-radius: 12px;
+    background-color: var(--color-white);
+}
+
+.meal-image {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    object-fit: cover;
+    margin-right: 12px;
+    background-color: #eee;
+}
+
+.meal-initials {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    margin-right: 12px;
+    background-color: #FFE0B2;
+    /* Light Orange */
+    color: var(--color-orange-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-family-sans);
+    font-weight: 700;
+    font-size: 18px;
+    text-transform: uppercase;
+}
+
+.meal-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 48px;
+    /* Match image height */
+    padding: 5px 0;
+}
+
+.meal-title {
+    font-family: var(--font-family-sans);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-dark-brown);
+    margin: 0;
+    /* Remove margin to let space-between work */
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.1;
+    /* Tighter line height for alignment */
+}
+
+.meal-meta {
+    font-size: 12px;
+    color: var(--color-grey-text);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.meal-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.remove-meal-btn {
+    background: none;
+    border: none;
+    color: var(--color-grey-text);
+    cursor: pointer;
+    padding: 8px;
+}
+
+.remove-meal-btn:hover {
+    color: var(--color-error);
+}
+
+/* Select Recipe Card (Planner Dialog) */
+.select-recipe-card {
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 12px;
+}
+
+.select-recipe-card:hover {
+    background-color: #FFF8F0;
+    /* Light orange hover */
+    border-color: var(--color-orange-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
